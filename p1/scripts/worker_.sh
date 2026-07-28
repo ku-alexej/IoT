@@ -14,6 +14,16 @@ sudo apt-get install -y curl bash net-tools
 
 sudo swapon --show
 
+echo ">>> Adding /sbin and /usr/sbin to PATH..."
+for home in /home/vagrant /root; do
+    if ! grep -q '/sbin' "${home}/.bashrc" 2>/dev/null; then
+        echo 'export PATH="$PATH:/sbin:/usr/sbin"' | sudo tee -a "${home}/.bashrc" > /dev/null
+    fi
+done
+sudo chown vagrant:vagrant /home/vagrant/.bashrc
+export PATH="$PATH:/sbin:/usr/sbin"
+echo ">>> PATH updated: ${PATH}"
+
 echo ">>> Waiting for server token..."
 until [ -f "${TOKEN_FILE}" ]; do
     echo "  ... token not yet available, waiting 5s"
