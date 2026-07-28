@@ -1,0 +1,35 @@
+# Variables
+LOGIN = "akurochk"
+OS = "debian/trixie64"
+NETWORK_NAME = "private_network"
+PROVIDER = "libvirt"
+SERVER_IP = "192.168.56.110"
+WORKER_IP = "192.168.56.111"
+SCRIPT_SERVER = "./scripts/server.sh"
+SCRIPT_WORKER = "./scripts/worker.sh"
+
+Vagrant.configure("2") do |config|
+
+    # Common settings
+    config.vm.box = "#{OS}"
+    config.vm.box_check_update = false
+    config.vm.provider "#{PROVIDER}" do |vm|
+        vm.memory = "1024"
+        vm.cpus = "1"
+    end
+
+    # Server (control-plane)
+    config.vm.define "#{LOGIN}S" do |server|
+        server.vm.hostname = "#{LOGIN}S"
+        server.vm.network "#{NETWORK_NAME}", ip: "#{SERVER_IP}"
+        server.vm.provision "shell", path: "#{SCRIPT_SERVER}"
+    end
+
+    # Worker (agent)
+    config.vm.define "#{LOGIN}SW" do |worker|
+        worker.vm.hostname = "#{LOGIN}SW"
+        worker.vm.network "#{NETWORK_NAME}", ip: "#{WORKER_IP}"
+        worker.vm.provision "shell", path: "#{SCRIPT_WORKER}"
+    end
+
+end
