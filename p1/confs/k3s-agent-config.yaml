@@ -1,0 +1,6 @@
+server: "https://__SERVER_IP__:6443"
+token-file: "/vagrant/node-token"
+node-ip: "__WORKER_IP__"
+flannel-iface: "eth1"
+kubelet-arg:
+  - "config=/etc/rancher/k3s/kubelet-swap-config.yaml"

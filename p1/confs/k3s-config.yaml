@@ -1,0 +1,6 @@
+node-ip: "__IP_SERVER__"
+tls-san:
+  - "__IP_SERVER__"
+write-kubeconfig-mode: "644"
+kubelet-arg:
+  - "config=/etc/rancher/k3s/kubelet-swap-config.yaml"
