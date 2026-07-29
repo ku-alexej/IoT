@@ -17,6 +17,8 @@ until kubectl get nodes 2>/dev/null | grep -qw "Ready"; do
     sleep 3
 done
 
+# systemctl enable k3s
+
 echo ">>> Saving node token..."
 cat "${TOKEN_FILE}" > /vagrant/node-token
 

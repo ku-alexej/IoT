@@ -1,26 +1,26 @@
 # Variables
-LOGIN = "akurochk"
-OS = "debian/trixie64"
-NETWORK_NAME = "private_network"
-PROVIDER = "libvirt"
-SERVER_IP = "192.168.56.110"
-SCRIPT_SERVER = "./scripts/server.sh"
+OS      = "debian/trixie64"
+NAME    = {server: "akurochkS"}
+NETWORK = {server: "192.168.56.110"}
+SCRIPT  = {server: "./scripts/server.sh", pods: "./scripts/pods.sh"}
 
 Vagrant.configure("2") do |config|
 
     # Common settings
-    config.vm.box = "#{OS}"
+    config.vm.box = OS
     config.vm.box_check_update = false
-    config.vm.provider "#{PROVIDER}" do |vm|
-        vm.memory = "2048"
-        vm.cpus = "1"
+    config.vm.synced_folder ".", "/vagrant"
+    config.vm.provider "libvirt" do |vm|
+        vm.memory = 2048
+        vm.cpus = 2
     end
 
     # Server (control-plane)
-    config.vm.define "#{LOGIN}S" do |server|
-        server.vm.hostname = "#{LOGIN}S"
-        server.vm.network "#{NETWORK_NAME}", ip: "#{SERVER_IP}"
-        server.vm.provision "shell", path: "#{SCRIPT_SERVER}"
+    config.vm.define NAME[:server] do |server|
+        server.vm.hostname = NAME[:server]
+        server.vm.network "private_network", ip: NETWORK[:server]
+        server.vm.provision "shell", path: SCRIPT[:server]
+        server.vm.provision "shell", path: SCRIPT[:pods]
     end
 
 end
