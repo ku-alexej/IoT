@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: p2_ingress
+  name: p2-ingress
 spec:
   ingressClassName: traefik
   rules:
@@ -14,7 +14,7 @@ spec:
               service:
                 name: app-one
                 port:
-                  number: 8081
+                  number: 80
     - host: app2.com
       http:
         paths:
@@ -24,10 +24,15 @@ spec:
               service:
                 name: app-two
                 port:
-                  number: 8082
-  # The default backend is used when no rules match.
-  defaultBackend:
-    service:
-      name: app-three
-      port:
-        number: 8083
+                  number: 80
+    # No "host" key here -> catch-all rule for any request that
+    # doesn't match app1.com / app2.com (e.g. requests by bare IP).
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app-three
+                port:
+                  number: 80

@@ -3,10 +3,22 @@ kind: ConfigMap
 metadata:
   name: app-one
 data:
-  index.html: |
+  index.html.template: |
     <html>
-      <body style="font-family: sans-serif; text-align:center; margin-top: 10%;">
-        <h1>Hello from app1</h1>
+      <head>
+        <style>
+          body { font-family: sans-serif; background:#1e1e1e; color:#eee; text-align:center; padding-top:8%; }
+          h1 { font-weight: 300; }
+          .info { display:inline-block; background:#111; padding:20px 30px; margin-top:30px; border-radius:6px; text-align:left; }
+          .info b { color:#7fd1ae; }
+        </style>
+      </head>
+      <body>
+        <h1>Hello from app1.</h1>
+        <div class="info">
+          <p><b>pod:</b> POD_NAME_PLACEHOLDER</p>
+          <p><b>node:</b> NODE_NAME_PLACEHOLDER</p>
+        </div>
       </body>
     </html>
 ---
@@ -17,7 +29,7 @@ metadata:
   labels:
     app: one
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: one
@@ -26,6 +38,30 @@ spec:
       labels:
         app: one
     spec:
+      initContainers:
+        - name: render-html
+          image: busybox
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          command:
+            - sh
+            - -c
+            - |
+              sed -e "s/POD_NAME_PLACEHOLDER/$POD_NAME/g" \
+                  -e "s/NODE_NAME_PLACEHOLDER/$NODE_NAME/g" \
+                  /template/index.html.template > /html/index.html
+          volumeMounts:
+            - name: template
+              mountPath: /template
+            - name: html
+              mountPath: /html
       containers:
         - name: app-one
           image: nginx:alpine
@@ -35,9 +71,11 @@ spec:
             - name: html
               mountPath: /usr/share/nginx/html
       volumes:
-        - name: html
+        - name: template
           configMap:
             name: app-one
+        - name: html
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -49,5 +87,4 @@ spec:
     app: one
   ports:
     - protocol: TCP
-      targetPort: 80
-      port: 8081    
+      port: 80
