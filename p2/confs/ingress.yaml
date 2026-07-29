@@ -1,8 +1,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: p2-ingress
+  name: p2_ingress
 spec:
+  ingressClassName: traefik
   rules:
     - host: app1.com
       http:

@@ -6,7 +6,7 @@ data:
   index.html: |
     <html>
       <body style="font-family: sans-serif; text-align:center; margin-top: 10%;">
-        <h1>Hello from app2</h1>
+        <h1>Hello from app1</h1>
       </body>
     </html>
 ---

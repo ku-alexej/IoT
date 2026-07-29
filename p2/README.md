@@ -52,3 +52,22 @@ kubectl get ingress <ingress-name> -o yaml
 # check whether an Ingress Controller is running
 kubectl get pods -A | grep -i ingress
 ```
+
+```bash
+kubectl get all
+
+curl -H "Host:app2.com" 192.168.56.110
+```
+
+### For the host machine to test p2 in browser:
+```bash
+sudo nano /etc/hosts
+# add:
+#     192.168.56.110  app1.com
+#     192.168.56.110  app2.com
+
+```
+Open in your browser:
+- http://app1.com → "Hello from app1"
+- http://app2.com → "Hello from app2"
+- http://192.168.56.110 → "Hello from app3" (default backend)

@@ -1,8 +1,9 @@
 #!/bin/bash
 
-echo ">>> Install nginx ingress controller..."
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-sleep 40
+echo ">>> Waiting for Traefik ingress controller (K3s default)..."
+until kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik 2>/dev/null | grep -q "1/1.*Running"; do
+    sleep 3
+done
 
 echo ">>> Applying application manifests..."
 kubectl apply -f /vagrant/confs/app1.yaml
