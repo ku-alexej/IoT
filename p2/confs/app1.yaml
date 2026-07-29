@@ -6,7 +6,7 @@ data:
   index.html: |
     <html>
       <body style="font-family: sans-serif; text-align:center; margin-top: 10%;">
-        <h1>Hello from app1</h1>
+        <h1>Hello from app2</h1>
       </body>
     </html>
 ---
@@ -17,7 +17,7 @@ metadata:
   labels:
     app: one
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: one
@@ -48,6 +48,6 @@ spec:
   selector:
     app: one
   ports:
-    - port: 80
+    - protocol: TCP
       targetPort: 80
-      protocol: TCP
+      port: 8081    

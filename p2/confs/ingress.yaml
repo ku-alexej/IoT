@@ -13,7 +13,7 @@ spec:
               service:
                 name: app-one
                 port:
-                  number: 80
+                  number: 8081
     - host: app2.com
       http:
         paths:
@@ -23,10 +23,10 @@ spec:
               service:
                 name: app-two
                 port:
-                  number: 80
+                  number: 8082
   # The default backend is used when no rules match.
   defaultBackend:
     service:
       name: app-three
       port:
-        number: 80
+        number: 8083

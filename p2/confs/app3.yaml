@@ -48,6 +48,6 @@ spec:
   selector:
     app: three
   ports:
-    - port: 80
+    - protocol: TCP
       targetPort: 80
-      protocol: TCP
+      port: 8083 
