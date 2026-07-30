@@ -3,7 +3,7 @@ set -e
 
 install_docker() {
     echo "Install: docker..."
-
+    curl -fsSL https://get.docker.com | sh
 }
 
 install_kubectl() {
@@ -45,10 +45,8 @@ echo "Check:   git..."
 command -v git &>/dev/null || install_git
 echo -e "Done:    git\n"
 
-# # ArgoCD - must be installed inside cluster
-# echo "Install: ArgoCD..."
-# command -v argocd &>/dev/null || # install script, if..fi or install_function
-# echo -e "Done:    ArgoCD\n"
+# ArgoCD
+# - must be installed inside cluster
 
 # end
 echo -e "All tools installed\n"
