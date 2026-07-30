@@ -1,15 +1,17 @@
 # check all tools
 
-# start configuration
+# Is docker working
 
-# Pre-made application created by wil:
-#   - https://hub.docker.com/r/wil42/playground.
-#   - The application uses port 8888.
+# START setup
+#     - setup : create cluster with k3d
+#     - setup : define namespaces
+#     - setup : install AgroCD inside cluster
+#     - setup : prepare manifest
+#     - setup : push manifest to Git
+#     - setup : apply ArgoCD app
+#     - setup : forward ports for ArgoCD
+#     - setup : wait for app answer
 
-# namespaces:
-#   - argocd
-#   - dev
-
-# run
-
-# final message + instruction
+# END setup
+#     - final message
+#     - how to use

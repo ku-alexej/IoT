@@ -2,7 +2,6 @@
 set -e
 
 uninstall_docker() {
-    echo "Uninstall: Docker..."
 
     # Remove docker elments
     if command -v docker >/dev/null 2>&1; then
@@ -44,12 +43,12 @@ uninstall_docker() {
     # Remove Docker configuration
     sudo rm -rf /etc/docker 2>/dev/null || true
     sudo rm -f /var/run/docker.sock 2>/dev/null || true
-
-    echo "- docker has been removed."
 }
 
 # which docker
+echo "Uninstall: Docker..."
 uninstall_docker
+echo "- docker has been removed."
 
 # which k3d
 echo "Uninstall: k3d..."
