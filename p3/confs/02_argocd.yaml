@@ -1,0 +1,20 @@
+apiVersion:
+kind: Deployment
+
+metadata:
+  name: p3-app
+  namespace: argocd
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/... # my public repo with mu login
+    targetRevision: main
+    path: p3/confs
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
