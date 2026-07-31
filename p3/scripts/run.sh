@@ -2,11 +2,12 @@
 set -e
 
 # check all tools
-R='\033[0;31m'
-G='\033[0;32m'
-Y='\033[0;33m'
-WB='\033[1;37m'
-NC='\033[0m'
+R="\033[0;31m"
+G="\033[0;32m"
+Y="\033[0;33m"
+WB="\033[1;37m"
+NC="\033[0m"
+
 
 check_tools() {
     ret=0
@@ -78,15 +79,36 @@ create_cluster() {
     fi
 }
 
+install_argocd() {
+    printf "     - %-10s : ${Y}installing...${NC}\n" "argocd"
+    kubectl apply \
+        --server-side \
+        --force-conflicts \
+        -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml \
+        -n argocd \
+        >/dev/null
+    printf "     - %-10s : ${Y}waiting answer...${NC}\n" "argocd"
+    kubectl wait \
+        --for=condition=available \
+        --timeout=300s deployment/argocd-server \
+        -n argocd \
+        >/dev/null
+    printf "     - %-10s : ${G}installed${NC}\n" "argocd"
+}
+
+get_argocd_pass() {
+    return "fox"
+}
+
 printf "\n${WB}=== Start SETUP script ===${NC}\n\n"
 
-printf "[1/142] SETUP check tools:\n"
+printf "[1/10] SETUP check tools:\n"
 if ! check_tools; then
     printf "${R}One of tools is not installed.${NC}\n\n"
     exit 1
 fi
 
-printf "[2/142] SETUP check docker status:\n"
+printf "[2/10] SETUP check docker status:\n"
 if ! check_docker; then
     printf "${R}Docker is not running.${NC}\n\n"
     exit 1
@@ -102,15 +124,50 @@ fi
 #     - setup : forward ports for ArgoCD
 #     - setup : wait for app answer
 
-printf "[3/142] SETUP create cluster with k3d:\n"
+printf "[3/10] SETUP create cluster with k3d:\n"
 create_cluster "p3-cluster"
 
-printf "[4/142] SETUP define namespaces:\n"
+printf "[4/10] SETUP define namespaces:\n"
 kubectl apply -f ../confs/00_namespaces.yaml >/dev/null
 for ns in dev argocd; do
     check_namespaces "$ns"
 done
+printf "\n"
 
+printf "[5/10] SETUP install AgroCD inside cluster:\n"
+install_argocd
+ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+# printf "Pass : ${ARGOCD_PASS}\n"
+printf "\n"
+
+printf "[6/10] SETUP prepare manifest:\n"
+GIT_USER="ku-alexej"
+GIT_DIR="akurochk-Inception-of-Things"
+GIT_EMAIL="akurochk@student.42.fr"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="${HOME}/${GIT_DIR}"
+if [ ! -d "$REPO_DIR" ]; then
+    printf "     - %-10s : ${Y}clonong git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
+    git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null
+fi
+printf "     - %-10s : ${Y}go to local repo...${NC}\n" "git"
+cd "$REPO_DIR"
+printf "     - %-10s : ${Y}configurate local repo...${NC}\n" "git"
+git config --local user.name "$GIT_USER"
+git config --local user.email "$GIT_EMAIL"
+cp "${SCRIPT_DIR}/../confs/01_dev.yaml" "${REPO_DIR}/deployment.yaml"
+
+git add deployment.yaml
+if ! git diff --cached --quiet; then
+    printf "     - %-10s : ${Y}update manifest...${NC}\n" "git"
+    git commit -m "chore: update deployment manifest (v1)" >/dev/null 2>&1
+    git push -u origin main >/dev/null 2>&1
+fi
+printf "     - %-10s : ${G}manifest prepared${NC}\n\n" "git"
+
+# printf "[8/10] SETUP apply ArgoCD app:\n"
+# printf "[9/10] SETUP forward ports for ArgoCD:\n"
+# printf "[10/10] SETUP wait for app answer:\n"
 
 # END setup
 #     - final message

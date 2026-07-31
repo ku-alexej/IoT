@@ -14,7 +14,7 @@ install_docker() {
 
 install_kubectl() {
     echo "Install: kubectl..."
-    curl -sLO https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl
+    curl -sLO https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
     chmod 0755 ./kubectl
     sudo mv ./kubectl /usr/local/bin/kubectl
 }
