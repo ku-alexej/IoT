@@ -51,7 +51,7 @@ check_docker() {
     return 1
 }
 
-check_namespaces() {
+check_namespace() {
     if kubectl get ns "$1" >/dev/null 2>&1; then
         printf "     - %-10s : ${G}created${NC}\n" "$1"
     else
@@ -87,7 +87,7 @@ install_argocd() {
         -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml \
         -n argocd \
         >/dev/null
-    printf "     - %-10s : ${Y}waiting answer...${NC}\n" "argocd"
+    printf "     - %-10s : ${Y}waiting for ArgoCD......${NC}\n" "argocd"
     kubectl wait \
         --for=condition=available \
         --timeout=300s deployment/argocd-server \
@@ -96,15 +96,11 @@ install_argocd() {
     printf "     - %-10s : ${G}installed${NC}\n" "argocd"
 }
 
-get_argocd_pass() {
-    return "fox"
-}
-
 printf "\n${WB}=== Start SETUP script ===${NC}\n\n"
 
 printf "[1/10] SETUP check tools:\n"
 if ! check_tools; then
-    printf "${R}One of tools is not installed.${NC}\n\n"
+    printf "${R}One of the tools is not installed.${NC}\n\n"
     exit 1
 fi
 
@@ -117,7 +113,7 @@ fi
 # START setup
 #     - setup : create cluster with k3d
 #     - setup : define namespaces
-#     - setup : install AgroCD inside cluster
+#     - setup : install ArgoCD inside cluster
 #     - setup : prepare manifest
 #     - setup : push manifest to Git
 #     - setup : apply ArgoCD app
@@ -130,11 +126,11 @@ create_cluster "p3-cluster"
 printf "[4/10] SETUP define namespaces:\n"
 kubectl apply -f ../confs/00_namespaces.yaml >/dev/null
 for ns in dev argocd; do
-    check_namespaces "$ns"
+    check_namespace "$ns"
 done
 printf "\n"
 
-printf "[5/10] SETUP install AgroCD inside cluster:\n"
+printf "[5/10] SETUP install ArgoCD inside cluster:\n"
 install_argocd
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 # printf "Pass : ${ARGOCD_PASS}\n"
@@ -147,12 +143,12 @@ GIT_EMAIL="akurochk@student.42.fr"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${HOME}/${GIT_DIR}"
 if [ ! -d "$REPO_DIR" ]; then
-    printf "     - %-10s : ${Y}clonong git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
+    printf "     - %-10s : ${Y}cloning git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
     git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null
 fi
 printf "     - %-10s : ${Y}go to local repo...${NC}\n" "git"
 cd "$REPO_DIR"
-printf "     - %-10s : ${Y}configurate local repo...${NC}\n" "git"
+printf "     - %-10s : ${Y}configure local repo...${NC}\n" "git"
 git config --local user.name "$GIT_USER"
 git config --local user.email "$GIT_EMAIL"
 cp "${SCRIPT_DIR}/../confs/01_dev.yaml" "${REPO_DIR}/deployment.yaml"
