@@ -9,14 +9,14 @@ WB='\033[1;37m'
 NC='\033[0m'
 
 are_tools_ready() {
-    printf "SETUP check tools:\n"
+    printf "[1/142] SETUP check tools:\n"
     ret=0
     for t in curl docker kubectl k3d git; do
         if ! command -v "$t" >/dev/null 2>&1; then
-            printf "     - %-8s: ${R}not installed${NC}\n" "$t"
+            printf "     - %-10s : ${R}not installed${NC}\n" "$t"
             ret=1
         else 
-            printf "     - %-8s: ${G}installed${NC}\n" "$t"
+            printf "     - %-10s : ${G}installed${NC}\n" "$t"
         fi
     done
     printf "\n"
@@ -24,23 +24,23 @@ are_tools_ready() {
 }
 
 is_docker_ready() {
-    printf "SETUP check docker status:\n"
+    printf "[2/142] SETUP check docker status:\n"
 
     if docker info >/dev/null 2>&1; then
-        printf "     - docker  : ${G}ready${NC}\n\n"
+        printf "     - docker    : ${G}ready${NC}\n\n"
         return 0
     fi
 
-    printf "     - docker  : ${R}not ready${NC}\n"
+    printf "     - docker    : ${R}not ready${NC}\n"
     if command -v systemctl >/dev/null 2>&1; then
-        printf "     - docker  : ${Y}starting${NC}\n"
+        printf "     - docker    : ${Y}starting${NC}\n"
         sudo systemctl enable --now docker >/dev/null 2>&1
     fi
 
     for _ in $(seq 1 20); do
-        printf "     - docker  : ${Y}...${NC}\n" 
+        printf "     - docker    : ${Y}...${NC}\n" 
         if docker info >/dev/null 2>&1; then
-            printf "     - docker  : ${G}ready${NC}\n\n"
+            printf "     - docker    : ${G}ready${NC}\n\n"
             return 0
         fi
         sleep 1
@@ -71,7 +71,18 @@ fi
 #     - setup : forward ports for ArgoCD
 #     - setup : wait for app answer
 
-printf "SETUP create cluster with k3d:\n"
+printf "[3/142] SETUP create cluster with k3d:\n"
+k3d cluster create p3-cluster \
+    --wait
+
+if k3d cluster list | grep -qw "p3-cluster"; then
+    printf "     - %-10s : ${G}installed${NC}\n\n" "p3-cluster"
+else
+    printf "${R}Cluster \"p3-cluster\" was not created.${NC}\n\n"
+    exit 1
+fi
+
+printf "[4/142] SETUP define namespaces:\n"
 
 
 # END setup
