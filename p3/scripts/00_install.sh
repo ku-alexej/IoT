@@ -8,7 +8,8 @@ install_curl() {
 
 install_docker() {
     echo "Install: docker..."
-    curl -fsSL https://get.docker.com | sh
+    curl -fsSL https://get.docker.com | sh &>/dev/null
+    sudo usermod -aG docker "$USER"
 }
 
 install_kubectl() {
@@ -20,7 +21,7 @@ install_kubectl() {
 
 install_k3d() {
     echo "Install: k3d..."
-    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash &>/dev/null
 }
 
 install_git() {
@@ -60,4 +61,5 @@ echo -e "Done:    git\n"
 # - must be installed inside cluster
 
 # end
-echo -e "All tools installed\n"
+echo "All tools installed"
+# echo -e "Relog to apply group permissions\n"
