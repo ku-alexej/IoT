@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/ku-alexej/akurochk-Inception-of-Things.git
-    targetRevision: main
+    targetRevision: HEAD
     path: ./
   destination:
     server: https://kubernetes.default.svc
@@ -18,3 +18,4 @@ spec:
     automated:
       prune: true
       selfHeal: true
+      

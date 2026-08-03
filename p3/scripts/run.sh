@@ -64,12 +64,11 @@ create_cluster() {
     local cluster="$1"
     shift
     if k3d cluster get "$cluster" >/dev/null 2>&1; then
-        # printf "${R}Cluster \"%s\" already exists.${NC}\n\n" "$cluster"
-        # exit 1
-
+        printf "${R}Cluster \"%s\" already exists.${NC}\n\n" "$cluster"
+        exit 1
         # for debug
-        printf "     - %-10s : ${Y}old cluster deleting...${NC}\n" "$cluster"
-        bash ./99_delete_cluster.sh >/dev/null # for debug
+        # printf "     - %-10s : ${Y}old cluster deleting...${NC}\n" "$cluster"
+        # bash ./99_delete_cluster.sh >/dev/null # for debug
     fi
     printf "     - %-10s : ${Y}creating...${NC}\n" "$cluster"
     if k3d cluster create "$cluster" --image rancher/k3s:v1.32.5-k3s1 "$@" >/dev/null; then
@@ -125,7 +124,6 @@ printf "[3/10] SETUP create cluster with k3d:\n"
 create_cluster "p3-cluster" \
     -p "8888:30042@loadbalancer" \
     --wait
-    # -p "4242:443@loadbalancer" \
 
 printf "[4/10] SETUP define namespaces:\n"
 kubectl apply -f ../confs/00_namespaces.yaml >/dev/null
@@ -137,7 +135,6 @@ printf "\n"
 printf "[5/10] SETUP install ArgoCD inside cluster:\n"
 install_argocd
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-# printf "Pass : ${ARGOCD_PASS}\n"
 printf "\n"
 
 printf "[6/10] SETUP prepare manifest:\n"
@@ -146,8 +143,8 @@ GIT_DIR="akurochk-Inception-of-Things"
 GIT_EMAIL="akurochk@student.42.fr"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${HOME}/${GIT_DIR}"
-rm -rf ${REPO_DIR}
 
+rm -rf ${REPO_DIR}
 printf "     - %-10s : ${Y}cloning git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
 git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null 2>&1
 
@@ -156,15 +153,13 @@ cd "$REPO_DIR"
 printf "     - %-10s : ${Y}configure local repo...${NC}\n" "git"
 git config --local user.name "$GIT_USER"
 git config --local user.email "$GIT_EMAIL"
-cp "${SCRIPT_DIR}/../confs/01_dev.yaml" "${REPO_DIR}/deployment.yaml"
+cp "${SCRIPT_DIR}/../confs/01_deployment.yaml" "${REPO_DIR}/deployment.yaml"
 
 git add deployment.yaml
 if ! git diff --cached --quiet; then
     printf "     - %-10s : ${Y}update manifest...${NC}\n" "git"
-    git commit -m "chore: update deployment manifest (v1)"
-    git push -u origin main
-    # git commit -m "chore: update deployment manifest (v1)" >/dev/null 2>&1
-    # git push -u origin main >/dev/null 2>&1
+    git commit -m "chore: update deployment manifest (v1)" >/dev/null 2>&1
+    git push -u origin main >/dev/null 2>&1
 fi
 printf "     - %-10s : ${G}manifest prepared${NC}\n\n" "git"
 
@@ -180,7 +175,7 @@ nohup kubectl port-forward \
     --address 0.0.0.0 \
     >/tmp/argocd.log 2>&1 &
 sleep 2
-printf "     - %-10s : ${G}done${NC}\n\n" "ingress"
+printf "     - %-10s : ${G}done${NC}\n\n" "ports for Argo CD"
 
 printf "[9/10] SETUP wait for app answer:\n"
 for _ in $(seq 1 10); do
@@ -201,7 +196,4 @@ printf "Wil app      : http://localhost:8888\n"
 printf "Argo CD      : http://localhost:4242\n"
 printf "  - login    : admin\n"
 printf "  - password : ${ARGOCD_PASS}\n"
-
-# TODO: manifest rename to deployment.yam
-# TARGET : HEAD instead of main
 
