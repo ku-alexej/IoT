@@ -72,7 +72,7 @@ create_cluster() {
         bash ./99_delete_cluster.sh >/dev/null # for debug
     fi
     printf "     - %-10s : ${Y}creating...${NC}\n" "$cluster"
-    if k3d cluster create "$cluster" "$@" >/dev/null; then
+    if k3d cluster create "$cluster" --image rancher/k3s:v1.32.5-k3s1 "$@" >/dev/null; then
         printf "     - %-10s : ${G}created${NC}\n\n" "$cluster"
     else
         printf "${R}Cluster \"%s\" was not created.${NC}\n\n" "$cluster"
@@ -123,9 +123,9 @@ fi
 
 printf "[3/10] SETUP create cluster with k3d:\n"
 create_cluster "p3-cluster" \
-    -p "4242:443@loadbalancer" \
     -p "8888:30042@loadbalancer" \
     --wait
+    # -p "4242:443@loadbalancer" \
 
 printf "[4/10] SETUP define namespaces:\n"
 kubectl apply -f ../confs/00_namespaces.yaml >/dev/null
@@ -146,10 +146,11 @@ GIT_DIR="akurochk-Inception-of-Things"
 GIT_EMAIL="akurochk@student.42.fr"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${HOME}/${GIT_DIR}"
-if [ ! -d "$REPO_DIR" ]; then
-    printf "     - %-10s : ${Y}cloning git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
-    git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null 2>&1
-fi
+rm -rf ${REPO_DIR}
+
+printf "     - %-10s : ${Y}cloning git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
+git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null 2>&1
+
 printf "     - %-10s : ${Y}go to local repo...${NC}\n" "git"
 cd "$REPO_DIR"
 printf "     - %-10s : ${Y}configure local repo...${NC}\n" "git"
@@ -160,8 +161,10 @@ cp "${SCRIPT_DIR}/../confs/01_dev.yaml" "${REPO_DIR}/deployment.yaml"
 git add deployment.yaml
 if ! git diff --cached --quiet; then
     printf "     - %-10s : ${Y}update manifest...${NC}\n" "git"
-    git commit -m "chore: update deployment manifest (v1)" >/dev/null 2>&1
-    git push -u origin main >/dev/null 2>&1
+    git commit -m "chore: update deployment manifest (v1)"
+    git push -u origin main
+    # git commit -m "chore: update deployment manifest (v1)" >/dev/null 2>&1
+    # git push -u origin main >/dev/null 2>&1
 fi
 printf "     - %-10s : ${G}manifest prepared${NC}\n\n" "git"
 
@@ -169,28 +172,36 @@ printf "[7/10] SETUP apply ArgoCD app:\n"
 kubectl apply -f "${SCRIPT_DIR}/../confs/02_argocd.yaml"
 printf "     - %-10s : ${G}yaml applyed${NC}\n\n" "argocd"
 
-# printf "[8/10] SETUP forward ports for ArgoCD:\n"
+printf "[8/10] SETUP forward ports for ArgoCD:\n"
+pkill -f "kubectl port-forward.*argocd-server" 2>/dev/null || true
+nohup kubectl port-forward \
+    -n argocd svc/argocd-server \
+    4242:443 \
+    --address 0.0.0.0 \
+    >/tmp/argocd.log 2>&1 &
+sleep 2
+printf "     - %-10s : ${G}done${NC}\n\n" "ingress"
 
 printf "[9/10] SETUP wait for app answer:\n"
 for _ in $(seq 1 10); do
-    if curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"message":"v1"'; then
+    if curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"v1"'; then
         printf "     - %-10s : ${G}aplication is ready${NC}\n\n" "app"
         break
     fi
     printf "     - %-10s : ${Y}waiting...${NC}\n" "app"
     sleep 2
 done
-
-
-# if ! curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"message":"v1"'; then
-#     printf "${R}App is still not responding.${NC}\n\n"
-#     exit 1
-# fi
+if ! curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"v1"'; then
+    printf "${R}App is still not responding.${NC}\n\n"
+    exit 1
+fi
 
 printf "[10/10] SETUP ${G}done${NC}:\n"
-IFCONFIG_IP=$(curl -s ifconfig.me)
-printf "Wil app      : http://${IFCONFIG_IP}:8888\n"
-printf "Argo CD      : http://${IFCONFIG_IP}:8080\n"
+printf "Wil app      : http://localhost:8888\n"
+printf "Argo CD      : http://localhost:4242\n"
 printf "  - login    : admin\n"
 printf "  - password : ${ARGOCD_PASS}\n"
+
+# TODO: manifest rename to deployment.yam
+# TARGET : HEAD instead of main
 
