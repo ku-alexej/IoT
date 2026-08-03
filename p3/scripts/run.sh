@@ -62,6 +62,7 @@ check_namespace() {
 
 create_cluster() {
     local cluster="$1"
+    shift
     if k3d cluster get "$cluster" >/dev/null 2>&1; then
         # printf "${R}Cluster \"%s\" already exists.${NC}\n\n" "$cluster"
         # exit 1
@@ -71,7 +72,7 @@ create_cluster() {
         bash ./99_delete_cluster.sh >/dev/null # for debug
     fi
     printf "     - %-10s : ${Y}creating...${NC}\n" "$cluster"
-    if k3d cluster create "$cluster" --wait >/dev/null; then
+    if k3d cluster create "$cluster" "$@" >/dev/null; then
         printf "     - %-10s : ${G}created${NC}\n\n" "$cluster"
     else
         printf "${R}Cluster \"%s\" was not created.${NC}\n\n" "$cluster"
@@ -87,7 +88,7 @@ install_argocd() {
         -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml \
         -n argocd \
         >/dev/null
-    printf "     - %-10s : ${Y}waiting for ArgoCD......${NC}\n" "argocd"
+    printf "     - %-10s : ${Y}waiting for ArgoCD...${NC}\n" "argocd"
     kubectl wait \
         --for=condition=available \
         --timeout=300s deployment/argocd-server \
@@ -121,7 +122,10 @@ fi
 #     - setup : wait for app answer
 
 printf "[3/10] SETUP create cluster with k3d:\n"
-create_cluster "p3-cluster"
+create_cluster "p3-cluster" \
+    -p "4242:443@loadbalancer" \
+    -p "8888:30042@loadbalancer" \
+    --wait
 
 printf "[4/10] SETUP define namespaces:\n"
 kubectl apply -f ../confs/00_namespaces.yaml >/dev/null
@@ -144,7 +148,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${HOME}/${GIT_DIR}"
 if [ ! -d "$REPO_DIR" ]; then
     printf "     - %-10s : ${Y}cloning git@github.com:${GIT_USER}/${GIT_DIR}.git${NC}\n" "git"
-    git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null
+    git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$REPO_DIR" >/dev/null 2>&1
 fi
 printf "     - %-10s : ${Y}go to local repo...${NC}\n" "git"
 cd "$REPO_DIR"
@@ -161,10 +165,32 @@ if ! git diff --cached --quiet; then
 fi
 printf "     - %-10s : ${G}manifest prepared${NC}\n\n" "git"
 
-# printf "[8/10] SETUP apply ArgoCD app:\n"
-# printf "[9/10] SETUP forward ports for ArgoCD:\n"
-# printf "[10/10] SETUP wait for app answer:\n"
+printf "[7/10] SETUP apply ArgoCD app:\n"
+kubectl apply -f "${SCRIPT_DIR}/../confs/02_argocd.yaml"
+printf "     - %-10s : ${G}yaml applyed${NC}\n\n" "argocd"
 
-# END setup
-#     - final message
-#     - how to use
+# printf "[8/10] SETUP forward ports for ArgoCD:\n"
+
+printf "[9/10] SETUP wait for app answer:\n"
+for _ in $(seq 1 10); do
+    if curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"message":"v1"'; then
+        printf "     - %-10s : ${G}aplication is ready${NC}\n\n" "app"
+        break
+    fi
+    printf "     - %-10s : ${Y}waiting...${NC}\n" "app"
+    sleep 2
+done
+
+
+# if ! curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"message":"v1"'; then
+#     printf "${R}App is still not responding.${NC}\n\n"
+#     exit 1
+# fi
+
+printf "[10/10] SETUP ${G}done${NC}:\n"
+IFCONFIG_IP=$(curl -s ifconfig.me)
+printf "Wil app      : http://${IFCONFIG_IP}:8888\n"
+printf "Argo CD      : http://${IFCONFIG_IP}:8080\n"
+printf "  - login    : admin\n"
+printf "  - password : ${ARGOCD_PASS}\n"
+

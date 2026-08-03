@@ -1,5 +1,5 @@
-apiVersion:
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 
 metadata:
   name: p3-app
@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/... # my public repo with mu login
+    repoURL: https://github.com/ku-alexej/akurochk-Inception-of-Things.git
     targetRevision: main
-    path: p3/confs
+    path: ./
   destination:
     server: https://kubernetes.default.svc
     namespace: dev
