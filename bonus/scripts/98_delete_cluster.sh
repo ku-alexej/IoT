@@ -15,14 +15,14 @@ source "${DIR_SCRIPT}/lib/common.sh"
 title "Deleting k3d cluster"
 printf "\n"
 
-log_warning "p3-cluster" "deleting"
+log_warning "bonus-cluster" "deleting"
 
 if ! which k3d >/dev/null 2>&1; then
-    log_error_exit "p3-cluster" "failed to delete, k3d not installed"
+    log_error_exit "bonus-cluster" "failed to delete, k3d not installed"
 fi
 
-k3d cluster list | grep -qw "p3-cluster" && k3d cluster delete p3-cluster >/dev/null 2>&1
+k3d cluster list | grep -qw "bonus-cluster" && k3d cluster delete bonus-cluster >/dev/null 2>&1
 
-log_success "p3-cluster" "deleted"
+log_success "bonus-cluster" "deleted"
 title "Done"
 printf "\n"

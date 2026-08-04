@@ -1,0 +1,74 @@
+installCertmanager: false
+
+nginx-ingress:
+  enabled: true
+  controller:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+prometheus:
+  install: false
+
+gitlab-runner:
+  install: false
+
+registry:
+  enabled: false
+
+gitlab:
+  webservice:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: 300m
+        memory: 1200Mi
+      limits:
+        memory: 2Gi
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 400Mi
+  gitaly:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 300Mi
+  toolbox:
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 200Mi
+
+postgresql:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+minio:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+gitlab-shell:
+  minReplicas: 1
+  maxReplicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
