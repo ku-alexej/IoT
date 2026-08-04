@@ -40,6 +40,11 @@ install_git() {
     sudo apt-get install -y -qq git
 }
 
+install_helm() {
+    log_warning "helm" "installing"
+    curl -s https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash &>/dev/null
+}
+
 # ==============================
 # MAIN
 # ==============================

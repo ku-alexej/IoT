@@ -6,8 +6,8 @@ set -e
 # ==============================
 
 readonly CLUSTER_NAME="p3-cluster"
-readonly NAMESPACES=("dev" "argocd")
-readonly TOOLS=("curl" "docker" "kubectl" "k3d" "git")
+readonly NAMESPACES=("dev" "argocd" "gitlab")
+readonly TOOLS=("curl" "docker" "kubectl" "k3d" "git" "helm")
 readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==============================

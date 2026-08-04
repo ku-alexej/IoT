@@ -76,6 +76,11 @@ printf "\n"
 log_warning "kubectl" "uninstalling"
 sudo rm "$(which kubectl)" 2>/dev/null || true
 log_success "kubectl" "has been removed"
+printf "\n"
+
+log_warning "helm" "uninstalling"
+sudo rm "$(which helm)" 2>/dev/null || true
+log_success "helm" "has been removed"
 
 title "Done"
 printf "\n"
