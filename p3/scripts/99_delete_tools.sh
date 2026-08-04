@@ -45,17 +45,14 @@ uninstall_docker() {
     sudo rm -f /var/run/docker.sock 2>/dev/null || true
 }
 
-# which docker
 echo "Uninstall: Docker..."
 uninstall_docker
 echo "- docker has been removed."
 
-# which k3d
 echo "Uninstall: k3d..."
 sudo rm "$(which k3d)" 2>/dev/null || true
 echo "- k3d has been removed."
 
-# which kubectl
 echo "Uninstall: kubectl..."
 sudo rm "$(which kubectl)" 2>/dev/null || true
 echo "- kubectl has been removed."

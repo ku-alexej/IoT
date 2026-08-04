@@ -1,65 +1,126 @@
 #!/bin/bash
 set -e
 
+# ==============================
+# COLORS
+# ==============================
+
+readonly GREEN="\033[0;32m"
+readonly YELLOW="\033[0;33m"
+readonly WHITE="\033[1;37m"
+readonly RESET="\033[0m"
+
+# ==============================
+# CONFIGURATION
+# ==============================
+
+readonly USERNAME="akurochk"
+readonly EMAIL="akurochk@student.42.fr"
+
+readonly GIT_USER="ku-alexej"
+readonly GIT_DIR="akurochk-Inception-of-Things"
+
+readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly DIR_REPO="${HOME}/${GIT_DIR}"
+
+# ==============================
+# LOG FUNCTIONS
+# ==============================
+
+title() {
+    local text=$1
+    printf "\n${WHITE}>>> %s <<<${RESET}\n" "$text"
+}
+
+log_step() {
+    local number=$1
+    local text=$2
+    printf "\n[%s/9] %s:\n" "$number" "$text"
+}
+
+status() {
+    local name="$1"
+    local status="$2"
+    local color="$3"
+    printf "     - %-10s : ${color}%s${RESET}\n" "$name" "$status"
+}
+
+log_success() {
+    status "$1" "$2" "$GREEN"
+}
+
+log_warning() {
+    status "$1" "$2" "$YELLOW"
+}
+
+# ==============================
+# SETUPS
+# ==============================
+
 install_curl() {
-    echo "Install: curl..."
+    log_warning "curl" "installing"
     sudo apt-get install -y -qq curl
 }
 
 install_docker() {
-    echo "Install: docker..."
+    log_warning "docker" "installing"
     curl -fsSL https://get.docker.com | sh &>/dev/null
     sudo usermod -aG docker "$USER"
 }
 
 install_kubectl() {
-    echo "Install: kubectl..."
+    log_warning "kubectl" "installing"
     curl -sLO https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
     chmod 0755 ./kubectl
     sudo mv ./kubectl /usr/local/bin/kubectl
 }
 
 install_k3d() {
-    echo "Install: k3d..."
+    log_warning "k3d" "installing"
     curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash &>/dev/null
 }
 
 install_git() {
-    echo "Install: git..."
+    log_warning "git" "installing"
     sudo apt-get install -y -qq git
 }
 
-echo -e "\nStart tools installation\n"
+# ==============================
+# MAIN
+# ==============================
+
+title "Installing required tools"
 
 # docker
-echo "Check:   curl..."
+log_step 1 "curl"
+log_warning "curl" "checking"
 command -v curl &>/dev/null || install_curl
-echo -e "Done:    curl\n"
-
+log_success "curl" "installed"
 
 # docker
-echo "Check:   docker..."
+log_step 2 "docker"
+log_warning "docker" "checking"
 command -v docker &>/dev/null || install_docker
-echo -e "Done:    docker\n"
+log_success "docker" "installed"
 
 # kubectl
-echo "Check:   kubectl..."
+log_step 3 "kubectl"
+log_warning "kubectl" "checking"
 command -v kubectl &>/dev/null || install_kubectl
-echo -e "Done:    kubectl\n"
+log_success "kubectl" "installed"
 
 # k3d
-echo "Check:   k3d..."
+log_step 4 "k3d"
+log_warning "k3d" "checking"
 command -v k3d &>/dev/null || install_k3d
-echo -e "Done:    k3d\n"
+log_success "k3d" "installed"
 
 # git
-echo "Check:   git..."
+log_step 5 "git"
+log_warning "git" "checking"
 command -v git &>/dev/null || install_git
-echo -e "Done:    git\n"
-
-# ArgoCD
-# - must be installed inside cluster
+log_success "git" "installed"
 
 # end
-echo "All tools installed"
-# echo -e "Relog to apply group permissions\n"
+title "Tool installation completed"
+printf "\n"
