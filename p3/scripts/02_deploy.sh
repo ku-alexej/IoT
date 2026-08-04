@@ -2,16 +2,6 @@
 set -e
 
 # ==============================
-# COLORS
-# ==============================
-
-readonly RED="\033[0;31m"
-readonly GREEN="\033[0;32m"
-readonly YELLOW="\033[0;33m"
-readonly WHITE="\033[1;37m"
-readonly RESET="\033[0m"
-
-# ==============================
 # CONFIGURATION
 # ==============================
 
@@ -21,40 +11,10 @@ readonly TOOLS=("curl" "docker" "kubectl" "k3d" "git")
 readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==============================
-# LOG FUNCTIONS
+# LIBRARY
 # ==============================
 
-title() {
-    local text=$1
-    printf "\n${WHITE}>>> %s <<<${RESET}\n" "$text"
-}
-
-log_step() {
-    local number=$1
-    local text=$2
-    printf "\n[%s/7] %s:\n" "$number" "$text"
-}
-
-status() {
-    local name="$1"
-    local status="$2"
-    local color="$3"
-    printf "     - %-10s : ${color}%s${RESET}\n" "$name" "$status"
-}
-
-log_success() {
-    status "$1" "$2" "$GREEN"
-}
-
-log_warning() {
-    status "$1" "$2" "$YELLOW"
-}
-
-log_error_exit() {
-    status "$1" "$2" "$RED"
-    echo ""
-    exit 1
-}
+source "${DIR_SCRIPT}/lib/common.sh"
 
 # ==============================
 # CHECKS
@@ -119,13 +79,9 @@ create_cluster() {
 
     if k3d cluster get "$cluster" >/dev/null 2>&1; then
         log_error_exit "$cluster" "already exists"
-        # for debug
-        # log_warning "$cluster" "removing existing cluster"
-        # bash ./99_delete_cluster.sh >/dev/null # for debug
     fi
 
     log_warning "$cluster" "creating cluster"
-
     if k3d cluster create "$cluster" -p "8888:30042@loadbalancer" --wait >/dev/null; then
         log_success "$cluster" "cluster created"
     else
@@ -206,7 +162,7 @@ log_step 3 "Creating k3d cluster"
 create_cluster ${CLUSTER_NAME}
 
 log_step 4 "Creating namespaces"
-kubectl apply -f ../confs/00_namespaces.yaml >/dev/null
+kubectl apply -f ${DIR_SCRIPT}/../confs/00_namespaces.yaml >/dev/null
 for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done

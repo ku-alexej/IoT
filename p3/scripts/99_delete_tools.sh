@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+# ==============================
+# LIBRARY
+# ==============================
+
+readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${DIR_SCRIPT}/lib/common.sh"
+
+# ==============================
+# UNINSTALL
+# ==============================
+
 uninstall_docker() {
 
     # Remove docker elments
@@ -45,14 +56,26 @@ uninstall_docker() {
     sudo rm -f /var/run/docker.sock 2>/dev/null || true
 }
 
-echo "Uninstall: Docker..."
+# ==============================
+# MAIN
+# ==============================
+
+title "Deleting Tools"
+printf "\n"
+
+log_warning "docker" "uninstalling"
 uninstall_docker
-echo "- docker has been removed."
+log_success "docker" "has been removed"
+printf "\n"
 
-echo "Uninstall: k3d..."
+log_warning "k3d" "uninstalling"
 sudo rm "$(which k3d)" 2>/dev/null || true
-echo "- k3d has been removed."
+log_success "k3d" "has been removed"
+printf "\n"
 
-echo "Uninstall: kubectl..."
+log_warning "kubectl" "uninstalling"
 sudo rm "$(which kubectl)" 2>/dev/null || true
-echo "- kubectl has been removed."
+log_success "kubectl" "has been removed"
+
+title "Done"
+printf "\n"
