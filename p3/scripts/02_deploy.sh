@@ -148,33 +148,33 @@ waiting_app() {
 
 title "Starting installation"
 
-log_step 1 "Checking tools"
+log_step 1 7 "Checking tools"
 if ! check_tools; then
     log_error_exit "tools" "missing one or more tools"
 fi
 
-log_step 2 "Checking Docker"
+log_step 2 7 "Checking Docker"
 if ! check_docker; then
     log_error_exit "docker" "unavailable"
 fi
 
-log_step 3 "Creating k3d cluster"
+log_step 3 7 "Creating k3d cluster"
 create_cluster ${CLUSTER_NAME}
 
-log_step 4 "Creating namespaces"
+log_step 4 7 "Creating namespaces"
 kubectl apply -f ${DIR_SCRIPT}/../confs/00_namespaces.yaml >/dev/null
 for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done
 
-log_step 5 "Installing Argo CD"
+log_step 5 7 "Installing Argo CD"
 install_argocd
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
-log_step 6 "Configuring Argo CD"
+log_step 6 7 "Configuring Argo CD"
 configure_argocd
 
-log_step 7 "Wait for application to become ready"
+log_step 7 7 "Wait for application to become ready"
 waiting_app
 
 title "Setup completed successfully"

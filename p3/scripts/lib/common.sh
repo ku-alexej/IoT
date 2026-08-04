@@ -21,8 +21,9 @@ title() {
 
 log_step() {
     local number=$1
-    local text=$2
-    printf "\n[%s/7] %s:\n" "$number" "$text"
+    local total=$2
+    local text=$3
+    printf "\n[%s/%s] %s:\n" "$number" "$total" "$text"
 }
 
 status() {

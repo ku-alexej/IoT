@@ -47,37 +47,37 @@ install_git() {
 title "Installing required tools"
 
 # docker
-log_step 1 "curl"
+log_step 1 6 "curl"
 log_warning "curl" "checking"
 command -v curl &>/dev/null || install_curl
 log_success "curl" "installed"
 
 # docker
-log_step 2 "docker"
+log_step 2 6 "docker"
 log_warning "docker" "checking"
 command -v docker &>/dev/null || install_docker
 log_success "docker" "installed"
 
 # kubectl
-log_step 3 "kubectl"
+log_step 3 6 "kubectl"
 log_warning "kubectl" "checking"
 command -v kubectl &>/dev/null || install_kubectl
 log_success "kubectl" "installed"
 
 # k3d
-log_step 4 "k3d"
+log_step 4 6 "k3d"
 log_warning "k3d" "checking"
 command -v k3d &>/dev/null || install_k3d
 log_success "k3d" "installed"
 
 # git
-log_step 5 "git"
+log_step 5 6 "git"
 log_warning "git" "checking"
 command -v git &>/dev/null || install_git
 log_success "git" "installed"
 
 # helm
-log_step 6 "helm"
+log_step 6 6 "helm"
 log_warning "helm" "checking"
 command -v helm &>/dev/null || install_helm
 log_success "helm" "installed"
