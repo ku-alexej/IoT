@@ -29,16 +29,14 @@ source "${DIR_SCRIPT}/lib/common.sh"
 
 title "Starting installation"
 
-
-
-{
-    log_warning "gitlab" "Adding local host addres"
-    if ! grep -q "$HOST_ENTRY" "$HOSTS_FILE"; then
-        log_warning "gitlab" "adding host"
-        echo "$HOST_ENTRY" | sudo tee -a "$HOSTS_FILE"
-    fi
-    log_success "gitlab" "host prepared"
-}
+# {
+#     log_warning "gitlab" "Adding local host addres"
+#     if ! grep -q "$HOST_ENTRY" "$HOSTS_FILE"; then
+#         log_warning "gitlab" "adding host"
+#         echo "$HOST_ENTRY" | sudo tee -a "$HOSTS_FILE"
+#     fi
+#     log_success "gitlab" "host prepared"
+# }
 
 
 
@@ -47,9 +45,9 @@ title "Starting installation"
     helm repo add gitlab https://charts.gitlab.io/ >/dev/null
     helm repo update >/dev/null
     helm install gitlab gitlab/gitlab \
-        --version 9.5.1 \
+        --version 9.11.8 \
         --values https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube-minimum.yaml \
-        --set global.hosts.domain=gitlab.bonus.com \
+        --set global.hosts.domain=localhost \
         --set global.hosts.externalIP=0.0.0.0 \
         --set gitlab.hosts.https=false \
         --set certmanager-issuer.email="admin@gitlab.bonus.com" \
@@ -58,7 +56,7 @@ title "Starting installation"
     log_success "gitlab" "deployed"
 }
 
-
+#  kubectl apply -f ../confs/03_gitlab.yaml
 
 {
     log_warning "gitlab" "waiting for the gitlab"
@@ -76,8 +74,10 @@ title "Starting installation"
 {
     log_warning "gitlab" "requesting password"
     GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
+    log_success "login" "root"
     log_success "password" "$GITLAB_PASSWORD"
 }
 
-
-kubectl port-forward svc/gitlab-webservice-default -n gitlab 80:8080 2>&1 >/dev/null &
+kubectl get svc -A
+kubectl port-forward -n gitlab svc/gitlab-webservice-default 8080:8181 &
+echo "http://localhost:8080/"

@@ -142,44 +142,9 @@ waiting_app() {
     fi
 }
 
-install_gitlab() {
-
-    log_warning "gitlab" "adding oficial helm repository"
-    helm repo add gitlab https://charts.gitlab.io/ >/dev/null || true
-    log_warning "gitlab" "------------------------------"
-    helm repo update >/dev/null
-
-    log_warning "gitlab" "installing gitlab"
-
-    local ip=$(curl -s ifconfig.me 2>/dev/null ||  echo "127.0.0.1")
-    log_warning "gitlab" "------------------------------"
-    if ! helm list -n gitlab 2>/dev/null | grep -q "gitlab"; then
-        log_warning "gitlab" "------------------------------"
-        helm install gitlab gitlab/gitlab \
-            --namespace gitlab \
-            --timeout 900s \
-            --set global.hosts.externalIP=$ip \
-            --set gitlab.webservice.puma.workers=0 \
-            -f "${DIR_SCRIPT}/../confs/03_gitlab.yaml" \
-            >/dev/null
-    fi
-
-    log_warning "gitlab" "waiting... (you have time for a cup of coffe)"
-    if kubectl rollout status deployment/gitlab-webservice-default \
-        -n gitlab --timeout=900s >/dev/null 2>&1; then
-        log_success "gitlab" "is ready"
-    else
-        log_error_exit "gitlab" "timed out waiting for webservice"
-    fi
-}
-
 # ==============================
 # MAIN
 # ==============================
-
-bash ./98_*
-bash ./99_*
-bash ./00_*
 
 title "Starting installation"
 
@@ -202,8 +167,17 @@ for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done
 
-log_step 5 8 "Install GitLab"
-install_gitlab
+# -------------------------------------------------
+
+log_step 5 8 "GITLAB"
+# place for bonus
+bash ./01_gitlab.sh
+
+# ------------------------------------------------
+
+#----------
+exit 0
+#----------
 
 log_step 6 8 "Installing Argo CD"
 install_argocd

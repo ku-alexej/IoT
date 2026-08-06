@@ -2,6 +2,12 @@
 set -e
 
 # ==============================
+# CONFIGURATION
+# ==============================
+
+readonly GITLAB_DOMAIN="gitlab.bonus.com"
+
+# ==============================
 # LIBRARY
 # ==============================
 
@@ -24,5 +30,12 @@ fi
 k3d cluster list | grep -qw "bonus-cluster" && k3d cluster delete bonus-cluster >/dev/null 2>&1
 
 log_success "bonus-cluster" "deleted"
+
+if grep -qxF "127.0.0.1 ${GITLAB_DOMAIN}" /etc/hosts 2>/dev/null; then
+    log_warning "hosts" "removing ${GITLAB_DOMAIN} mapping"
+    sudo sed -i.bak "/^127\.0\.0\.1 ${GITLAB_DOMAIN}\$/d" /etc/hosts
+    log_success "hosts" "mapping removed"
+fi
+
 title "Done"
 printf "\n"
