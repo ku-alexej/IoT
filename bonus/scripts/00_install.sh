@@ -51,7 +51,7 @@ install_helm() {
 
 title "Installing required tools"
 
-# docker
+# curl
 log_step 1 6 "curl"
 log_warning "curl" "checking"
 command -v curl &>/dev/null || install_curl

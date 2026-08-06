@@ -2,13 +2,13 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: p3-app
+  name: wil-app
   namespace: argocd
 
 spec:
   project: default
   source:
-    repoURL: https://github.com/ku-alexej/akurochk-Inception-of-Things.git
+    repoURL: http://gitlab-webservice-default.gitlab.svc:8181/root/akurochk-IoT.git
     targetRevision: HEAD
     path: ./
   destination:
@@ -18,4 +18,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-      
