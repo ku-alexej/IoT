@@ -35,17 +35,20 @@ When the deployment finishes, the script prints all the information required to 
 
 >>> Setup completed successfully <<<
 
-Application  : http://localhost:8888
+Application  : http://wil.akurochk.com
 
-Argo CD UI   : http://localhost:4242
+Argo CD UI   : http://argocd.akurochk.com
   - Username : admin
   - Password : < password for Argo CD >
 
-GitLab       : http://localhost:8080
+GitLab       : http://gitlab.akurochk.com
   - Username : root
   - Password : < password ro GitLab >
 
 ```
+
+All three hostnames are routed through k3d's built-in Traefik ingress controller, and are automatically added to `/etc/hosts` pointing at `127.0.0.1` during `02_deploy.sh`.
+
 ## Switching the wil-playground Version
 
 You can change the deployed version of the wil-playground application either through the GitLab UI or by running one of the following scripts:

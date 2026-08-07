@@ -9,6 +9,9 @@ readonly CLUSTER_NAME="bonus-cluster"
 readonly NAMESPACES=("dev" "argocd" "gitlab")
 readonly TOOLS=("curl" "docker" "kubectl" "k3d" "git" "helm")
 readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly WIL_HOST="wil.akurochk.com"
+readonly ARGOCD_HOST="argocd.akurochk.com"
+readonly GITLAB_HOST="gitlab.akurochk.com"
 
 # ==============================
 # LIBRARY
@@ -82,11 +85,25 @@ create_cluster() {
     fi
 
     log_warning "$cluster" "creating cluster"
-    if k3d cluster create "$cluster" -p "8888:30042@loadbalancer" --wait >/dev/null; then
+    if k3d cluster create "$cluster" -p "80:80@loadbalancer" -p "443:443@loadbalancer" --wait >/dev/null; then
         log_success "$cluster" "cluster created"
     else
         log_error_exit "$cluster" "failed to create cluster"
     fi
+}
+
+configure_hosts() {
+
+    local entry
+    for entry in "$WIL_HOST" "$ARGOCD_HOST" "$GITLAB_HOST"; do
+        if grep -qE "[[:space:]]${entry}(\$|[[:space:]])" /etc/hosts 2>/dev/null; then
+            log_success "$entry" "already in /etc/hosts"
+        else
+            log_warning "$entry" "adding to /etc/hosts"
+            echo "127.0.0.1 ${entry}" | sudo tee -a /etc/hosts >/dev/null
+            log_success "$entry" "added to /etc/hosts"
+        fi
+    done
 }
 
 install_argocd() {
@@ -114,14 +131,12 @@ configure_argocd() {
     log_warning "argocd" "applying configuration"
     kubectl apply -f "${DIR_SCRIPT}/../confs/02_argocd.yaml" >/dev/null
 
-    log_warning "argocd" "starting port-forward"
-    pkill -f "kubectl port-forward.*argocd-server" 2>/dev/null || true
-    nohup kubectl port-forward \
-        -n argocd svc/argocd-server \
-        4242:443 \
-        --address 0.0.0.0 \
-        >/tmp/argocd.log 2>&1 &
-    sleep 2
+    log_warning "ingress" "applying wil / argocd / gitlab rules"
+    kubectl apply -f "${DIR_SCRIPT}/../confs/03_ingress.yaml" >/dev/null
+
+    log_warning "argocd" "switching to insecure (HTTP) mode for ingress"
+    kubectl rollout restart deployment/argocd-server -n argocd >/dev/null
+    kubectl rollout status deployment/argocd-server -n argocd --timeout=120s >/dev/null
 
     log_success "argocd" "ready"
 }
@@ -129,7 +144,7 @@ configure_argocd() {
 waiting_app() {
 
     for _ in $(seq 1 30); do
-        if curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"v1"'; then
+        if curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
             log_success "app" "application is ready"
             break
         fi
@@ -137,7 +152,7 @@ waiting_app() {
         sleep 2
     done
 
-    if ! curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"v1"'; then
+    if ! curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
         log_error_exit "app" "timed out"
     fi
 }
@@ -153,20 +168,23 @@ bash ./00_*
 
 title "Starting installation"
 
-log_step 1 9 "Checking tools"
+log_step 1 10 "Checking tools"
 if ! check_tools; then
     log_error_exit "tools" "missing one or more tools"
 fi
 
-log_step 2 9 "Checking Docker"
+log_step 2 10 "Checking Docker"
 if ! check_docker; then
     log_error_exit "docker" "unavailable"
 fi
 
-log_step 3 9 "Creating k3d cluster"
+log_step 3 10 "Creating k3d cluster"
 create_cluster ${CLUSTER_NAME}
 
-log_step 4 9 "Creating namespaces"
+log_step 4 10 "Configuring /etc/hosts"
+configure_hosts
+
+log_step 5 10 "Creating namespaces"
 kubectl apply -f ${DIR_SCRIPT}/../confs/00_namespaces.yaml >/dev/null
 for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
@@ -175,21 +193,21 @@ done
 # ------ Start of GitLab block ------
 
 
-log_step 5 9 "GitLab"
+log_step 6 10 "GitLab"
 bash ./01_gitlab.sh
 
-log_step 6 9 "Manifest v1"
+log_step 7 10 "Manifest v1"
 bash ./01_manifest_v1.sh
 
 # ------ End of GitLab block ------
 
-log_step 7 9 "Installing Argo CD"
+log_step 8 10 "Installing Argo CD"
 install_argocd
 
-log_step 8 9 "Configuring Argo CD"
+log_step 9 10 "Configuring Argo CD"
 configure_argocd
 
-log_step 9 9 "Wait for application to become ready"
+log_step 10 10 "Wait for application to become ready"
 waiting_app
 
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
@@ -197,12 +215,12 @@ GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -
 
 title "Setup completed successfully"
 
-printf "\nApplication  : http://localhost:8888\n\n"
+printf "\nApplication  : http://%s\n\n" "${WIL_HOST}"
 
-printf "Argo CD UI   : http://localhost:4242\n"
+printf "Argo CD UI   : http://%s\n" "${ARGOCD_HOST}"
 printf "  - Username : admin\n"
 printf "  - Password : ${ARGOCD_PASS}\n\n"
 
-printf "GitLab       : http://localhost:8080\n"
+printf "GitLab       : http://%s\n" "${GITLAB_HOST}"
 printf "  - Username : root\n"
 printf "  - Password : ${GITLAB_PASS}\n\n"
