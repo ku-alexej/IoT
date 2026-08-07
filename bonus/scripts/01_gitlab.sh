@@ -65,7 +65,7 @@ waiting_gitlab() {
         --timeout=1200s \
         -n gitlab \
         >/dev/null
-    
+
     local elapsed=$SECONDS
     local m=$((elapsed / 60))
     local s=$((elapsed % 60))
@@ -73,21 +73,21 @@ waiting_gitlab() {
     log_success "gitlab" "$(printf 'ready (took %02dm %02ds)' "$m" "$s")"
 }
 
-print_password() {
+# print_password() {
 
-    log_warning "gitlab" "requesting password"
-    sleep 10
-    GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
-    
-    log_success "login" "root"
-    log_success "password" "$GITLAB_PASSWORD"
-}
+#     log_warning "gitlab" "requesting password"
+#     sleep 10
+#     GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
+
+#     log_success "login" "root"
+#     log_success "password" "$GITLAB_PASSWORD"
+# }
 
 port_forward() {
 
-    kubectl port-forward -n gitlab svc/gitlab-webservice-default 8080:8181 2>&1 >/dev/null &
-    log_success "gitlab: http://gitlab.bonus.akurochk.com:8080"
-    log_success "gitlab: http://localhost:8080"
+    kubectl port-forward -n gitlab svc/gitlab-webservice-default 8080:8181 >/dev/null 2>&1 &
+    # log_success "gitlab: http://gitlab.bonus.akurochk.com:8080"
+    # log_success "gitlab: http://localhost:8080"
 }
 
 # ==============================
@@ -97,5 +97,5 @@ port_forward() {
 adding_host
 deploying_gitlab
 waiting_gitlab
-print_password
+# print_password
 port_forward

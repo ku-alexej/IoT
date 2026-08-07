@@ -153,53 +153,56 @@ bash ./00_*
 
 title "Starting installation"
 
-log_step 1 8 "Checking tools"
+log_step 1 9 "Checking tools"
 if ! check_tools; then
     log_error_exit "tools" "missing one or more tools"
 fi
 
-log_step 2 8 "Checking Docker"
+log_step 2 9 "Checking Docker"
 if ! check_docker; then
     log_error_exit "docker" "unavailable"
 fi
 
-log_step 3 8 "Creating k3d cluster"
+log_step 3 9 "Creating k3d cluster"
 create_cluster ${CLUSTER_NAME}
 
-log_step 4 8 "Creating namespaces"
+log_step 4 9 "Creating namespaces"
 kubectl apply -f ${DIR_SCRIPT}/../confs/00_namespaces.yaml >/dev/null
 for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done
 
-# -------------------------------------------------
+# ------ Start of GitLab block ------
 
-log_step 5 8 "GitLab"
-# place for bonus
+
+log_step 5 9 "GitLab"
 bash ./01_gitlab.sh
 
-log_step 6 8 "Manifest v1"
+log_step 6 9 "Manifest v1"
 bash ./01_manifest_v1.sh
 
-# ------------------------------------------------
+# ------ End of GitLab block ------
 
-#----------
-exit 0
-#----------
+log_step 7 9 "Installing Argo CD"
+install_argocd
 
-# log_step 6 8 "Installing Argo CD"
-# install_argocd
-# ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+log_step 8 9 "Configuring Argo CD"
+configure_argocd
 
-# log_step 7 8 "Configuring Argo CD"
-# configure_argocd
+log_step 9 9 "Wait for application to become ready"
+waiting_app
 
-# log_step 8 8 "Wait for application to become ready"
-# waiting_app
+ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+GITLAB_PASS=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
 
-# title "Setup completed successfully"
-# printf "\nApplication  : http://localhost:8888\n"
-# printf "Argo CD UI   : http://localhost:4242\n\n"
-# printf "Credentials\n"
-# printf "  - Username : admin\n"
-# printf "  - Password : ${ARGOCD_PASS}\n\n"
+title "Setup completed successfully"
+
+printf "\nApplication  : http://localhost:8888\n\n"
+
+printf "Argo CD UI   : http://localhost:4242\n"
+printf "  - Username : admin\n"
+printf "  - Password : ${ARGOCD_PASS}\n\n"
+
+printf "GitLab       : http://localhost:8080\n"
+printf "  - Username : root\n"
+printf "  - Password : ${GITLAB_PASS}\n\n"

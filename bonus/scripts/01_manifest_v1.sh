@@ -10,6 +10,8 @@ readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 readonly GITLAB_URL="http://gitlab.bonus.akurochk.com:8080"
 readonly GITLAB_HOST="gitlab.bonus.akurochk.com:8080"
+readonly GIT_USER="akurochk"
+readonly GIT_EMAIL="akurochk@student.42.fr"
 readonly USERNAME="root"
 
 readonly PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password \
@@ -87,6 +89,9 @@ commit_and_push() {
     log_warning "manifest" "updating to v1"
 
     cd "${PROJECT_NAME}"
+    git config --local user.name "$GIT_USER"
+    git config --local user.email "$GIT_EMAIL"
+
     git add deployment.yaml
     if ! git diff --cached --quiet; then
         log_warning "manifest" "committing changes"

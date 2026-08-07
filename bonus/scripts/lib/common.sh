@@ -31,6 +31,7 @@ status() {
     local status="$2"
     local color="$3"
     printf "     - %-10s : ${color}%s${RESET}\n" "$name" "$status"
+    sleep 1
 }
 
 log_success() {
