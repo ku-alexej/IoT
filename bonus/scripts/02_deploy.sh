@@ -169,9 +169,12 @@ done
 
 # -------------------------------------------------
 
-log_step 5 8 "GITLAB"
+log_step 5 8 "GitLab"
 # place for bonus
 bash ./01_gitlab.sh
+
+log_step 6 8 "Manifest v1"
+bash ./01_manifest_v1.sh
 
 # ------------------------------------------------
 
