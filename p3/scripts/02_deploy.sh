@@ -9,6 +9,8 @@ readonly CLUSTER_NAME="p3-cluster"
 readonly NAMESPACES=("dev" "argocd")
 readonly TOOLS=("curl" "docker" "kubectl" "k3d" "git")
 readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly WIL_HOST="wil.akurochk.com"
+readonly ARGOCD_HOST="argocd.akurochk.com"
 
 # ==============================
 # LIBRARY
@@ -82,11 +84,25 @@ create_cluster() {
     fi
 
     log_warning "$cluster" "creating cluster"
-    if k3d cluster create "$cluster" -p "8888:30042@loadbalancer" --wait >/dev/null; then
+    if k3d cluster create "$cluster" -p "80:80@loadbalancer" -p "443:443@loadbalancer" --wait >/dev/null; then
         log_success "$cluster" "cluster created"
     else
         log_error_exit "$cluster" "failed to create cluster"
     fi
+}
+
+configure_hosts() {
+
+    local entry
+    for entry in "$WIL_HOST" "$ARGOCD_HOST"; do
+        if grep -qE "[[:space:]]${entry}(\$|[[:space:]])" /etc/hosts 2>/dev/null; then
+            log_success "$entry" "already in /etc/hosts"
+        else
+            log_warning "$entry" "adding to /etc/hosts"
+            echo "127.0.0.1 ${entry}" | sudo tee -a /etc/hosts >/dev/null
+            log_success "$entry" "added to /etc/hosts"
+        fi
+    done
 }
 
 install_argocd() {
@@ -114,14 +130,12 @@ configure_argocd() {
     log_warning "argocd" "applying configuration"
     kubectl apply -f "${DIR_SCRIPT}/../confs/02_argocd.yaml" >/dev/null
 
-    log_warning "argocd" "starting port-forward"
-    pkill -f "kubectl port-forward.*argocd-server" 2>/dev/null || true
-    nohup kubectl port-forward \
-        -n argocd svc/argocd-server \
-        4242:443 \
-        --address 0.0.0.0 \
-        >/tmp/argocd.log 2>&1 &
-    sleep 2
+    log_warning "argocd" "applying ingress"
+    kubectl apply -f "${DIR_SCRIPT}/../confs/03_ingress.yaml" >/dev/null
+
+    log_warning "argocd" "switching to insecure (HTTP) mode for ingress"
+    kubectl rollout restart deployment/argocd-server -n argocd >/dev/null
+    kubectl rollout status deployment/argocd-server -n argocd --timeout=120s >/dev/null
 
     log_success "argocd" "ready"
 }
@@ -129,7 +143,7 @@ configure_argocd() {
 waiting_app() {
 
     for _ in $(seq 1 30); do
-        if curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"v1"'; then
+        if curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
             log_success "app" "application is ready"
             break
         fi
@@ -137,7 +151,7 @@ waiting_app() {
         sleep 2
     done
 
-    if ! curl -fsS http://localhost:8888/ 2>/dev/null | grep -q '"v1"'; then
+    if ! curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
         log_error_exit "app" "timed out"
     fi
 }
@@ -148,38 +162,41 @@ waiting_app() {
 
 title "Starting installation"
 
-log_step 1 7 "Checking tools"
+log_step 1 8 "Checking tools"
 if ! check_tools; then
     log_error_exit "tools" "missing one or more tools"
 fi
 
-log_step 2 7 "Checking Docker"
+log_step 2 8 "Checking Docker"
 if ! check_docker; then
     log_error_exit "docker" "unavailable"
 fi
 
-log_step 3 7 "Creating k3d cluster"
+log_step 3 8 "Creating k3d cluster"
 create_cluster ${CLUSTER_NAME}
 
-log_step 4 7 "Creating namespaces"
+log_step 4 8 "Configuring /etc/hosts"
+configure_hosts
+
+log_step 5 8 "Creating namespaces"
 kubectl apply -f ${DIR_SCRIPT}/../confs/00_namespaces.yaml >/dev/null
 for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done
 
-log_step 5 7 "Installing Argo CD"
+log_step 6 8 "Installing Argo CD"
 install_argocd
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
-log_step 6 7 "Configuring Argo CD"
+log_step 7 8 "Configuring Argo CD"
 configure_argocd
 
-log_step 7 7 "Wait for application to become ready"
+log_step 8 8 "Wait for application to become ready"
 waiting_app
 
 title "Setup completed successfully"
-printf "\nApplication  : http://localhost:8888\n"
-printf "Argo CD UI   : http://localhost:4242\n\n"
+printf "\nApplication  : http://%s\n" "${WIL_HOST}"
+printf "Argo CD UI   : http://%s\n\n" "${ARGOCD_HOST}"
 printf "Credentials\n"
 printf "  - Username : admin\n"
 printf "  - Password : ${ARGOCD_PASS}\n\n"
