@@ -19,12 +19,7 @@ readonly PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password \
 readonly PROJECT_NAME="akurochk-IoT"
 readonly GITLAB_REPO="${GITLAB_HOST}/${USERNAME}/${PROJECT_NAME}.git"
 
-readonly TOKEN=$(curl -s \
-    --request POST \
-    --data "grant_type=password" \
-    --data "username=root" \
-    --data "password=${PASSWORD}" \
-    "${GITLAB_URL}/oauth/token" | jq -r '.access_token')
+TOKEN=""
 
 # ==============================
 # LIBRARY
@@ -37,12 +32,24 @@ source "${DIR_SCRIPT}/lib/common.sh"
 # ==============================
 
 check_token() {
+
     log_warning "token" "checking"
     sleep 15
+
+    TOKEN=$(curl -s \
+    --request POST \
+    --data "grant_type=password" \
+    --data "username=root" \
+    --data "password=${PASSWORD}" \
+    "${GITLAB_URL}/oauth/token" | jq -r '.access_token')
+
+    printf "token: %s\n" "${TOKEN}"
+
     if [[ -z "${TOKEN}" || "${TOKEN}" == "null" ]]; then
         log_error_exit "token" "failed to obtain gitlab access token"
     fi
-    log_warning "token" "exist"
+
+    log_success "token" "exist"
 }
 
 clone_repository() {
@@ -50,7 +57,7 @@ clone_repository() {
 
     rm -rf ${PROJECT_NAME}
 
-    if git clone "http://${USERNAME}:${TOKEN}@${GITLAB_REPO}" >/dev/null; then
+    if git clone "http://${USERNAME}:${TOKEN}@${GITLAB_REPO}" >/dev/null 2>&1; then
         log_success "repository" "cloned"
     else
         log_warning "repository" "does not exist"
@@ -62,10 +69,10 @@ clone_repository() {
             --data "path=${PROJECT_NAME}" \
             --data "visibility=public" \
             "${GITLAB_URL}/api/v4/projects" \
-            >/dev/null
+            >/dev/null 2>&1
 
         log_success "repository" "created"
-        git clone "http://${USERNAME}:${TOKEN}@${GITLAB_REPO}" >/dev/null
+        git clone "http://${USERNAME}:${TOKEN}@${GITLAB_REPO}" >/dev/null 2>&1
         log_success "repository" "cloned"
     fi
 }
@@ -85,7 +92,7 @@ commit_and_push() {
         log_warning "manifest" "committing changes"
         git commit -m "chore: update deployment manifest (v1)" >/dev/null
         log_warning "manifest" "pushing changes"
-        git push -u origin main >/dev/null
+        git push -u origin main >/dev/null 2>&1
     fi
     log_success "manifest" "v1 ready"
 }

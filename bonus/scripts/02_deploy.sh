@@ -146,6 +146,11 @@ waiting_app() {
 # MAIN
 # ==============================
 
+# cleaning for debug
+bash ./98_*
+bash ./99_*
+bash ./00_*
+
 title "Starting installation"
 
 log_step 1 8 "Checking tools"

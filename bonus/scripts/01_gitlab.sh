@@ -25,7 +25,6 @@ adding_host() {
 
     log_warning "gitlab" "adding local host addres"
     if ! grep -q "$HOST_ENTRY" "$HOSTS_FILE"; then
-        log_warning "gitlab" "adding host"
         echo "$HOST_ENTRY" | sudo tee -a "$HOSTS_FILE" >/dev/null
     fi
     log_success "gitlab" "host prepared"
@@ -54,7 +53,10 @@ deploying_gitlab() {
 
 waiting_gitlab() {
 
-    log_warning "gitlab" "waiting for the gitlab"
+    log_warning "gitlab" "waiting for the gitlab (around 5 min)"
+
+    SECONDS=0
+    sleep 30
 
     kubectl wait \
         --for=condition=Ready \
@@ -63,13 +65,18 @@ waiting_gitlab() {
         --timeout=1200s \
         -n gitlab \
         >/dev/null
+    
+    local elapsed=$SECONDS
+    local m=$((elapsed / 60))
+    local s=$((elapsed % 60))
 
-    log_success "gitlab" "ready"
+    log_success "gitlab" "$(printf 'ready (took %02dm %02ds)' "$m" "$s")"
 }
 
 print_password() {
 
     log_warning "gitlab" "requesting password"
+    sleep 10
     GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
     
     log_success "login" "root"
