@@ -179,19 +179,19 @@ bash ./01_gitlab.sh
 exit 0
 #----------
 
-log_step 6 8 "Installing Argo CD"
-install_argocd
-ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+# log_step 6 8 "Installing Argo CD"
+# install_argocd
+# ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
-log_step 7 8 "Configuring Argo CD"
-configure_argocd
+# log_step 7 8 "Configuring Argo CD"
+# configure_argocd
 
-log_step 8 8 "Wait for application to become ready"
-waiting_app
+# log_step 8 8 "Wait for application to become ready"
+# waiting_app
 
-title "Setup completed successfully"
-printf "\nApplication  : http://localhost:8888\n"
-printf "Argo CD UI   : http://localhost:4242\n\n"
-printf "Credentials\n"
-printf "  - Username : admin\n"
-printf "  - Password : ${ARGOCD_PASS}\n\n"
+# title "Setup completed successfully"
+# printf "\nApplication  : http://localhost:8888\n"
+# printf "Argo CD UI   : http://localhost:4242\n\n"
+# printf "Credentials\n"
+# printf "  - Username : admin\n"
+# printf "  - Password : ${ARGOCD_PASS}\n\n"
