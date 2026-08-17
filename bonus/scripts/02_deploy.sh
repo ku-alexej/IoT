@@ -132,24 +132,28 @@ configure_argocd() {
     kubectl apply -f "${DIR_SCRIPT}/../confs/02_argocd.yaml" >/dev/null
 
     log_warning "ingress" "applying wil / argocd / gitlab rules"
-    kubectl apply -f "${DIR_SCRIPT}/../confs/03_ingress.yaml" >/dev/null
+    kubectl apply -f "${DIR_SCRIPT}/../confs/03_ingress.yaml" >/dev/null 2>&1
 
+    log_success "argocd" "configured"
+}
+
+restart_argocd() {
     log_warning "argocd" "switching to insecure (HTTP) mode for ingress"
-    kubectl rollout restart deployment/argocd-server -n argocd >/dev/null
-    kubectl rollout status deployment/argocd-server -n argocd --timeout=120s >/dev/null
+    kubectl rollout restart deployment/argocd-server -n argocd >/dev/null 2>&1
+    kubectl rollout status deployment/argocd-server -n argocd --timeout=120s >/dev/null 2>&1
 
     log_success "argocd" "ready"
 }
 
 waiting_app() {
 
-    for _ in $(seq 1 30); do
-        if curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
+    for _ in $(seq 1 240); do
+        if curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null  | grep -q '"v1"'; then
             log_success "app" "application is ready"
             break
         fi
         log_warning "app" "waiting for application"
-        sleep 2
+        sleep 10
     done
 
     if ! curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
@@ -165,6 +169,7 @@ waiting_app() {
 bash ./98_*
 bash ./99_*
 bash ./00_*
+clear
 
 title "Starting installation"
 
@@ -190,24 +195,24 @@ for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done
 
-# ------ Start of GitLab block ------
-
-
+# ----- GitLab Block 1 -----
 log_step 6 10 "GitLab"
 bash ./01_gitlab.sh
+# ----- End 1 --------------
 
-log_step 7 10 "Manifest v1"
-bash ./01_manifest_v1.sh
-
-# ------ End of GitLab block ------
-
-log_step 8 10 "Installing Argo CD"
+log_step 7 10 "Installing Argo CD"
 install_argocd
 
-log_step 9 10 "Configuring Argo CD"
+log_step 8 10 "Configuring Argo CD"
 configure_argocd
 
+# ----- GitLab Block 2 -----
+log_step 9 10 "Manifest v1"
+bash ./01_manifest_v1.sh
+# ----- End 2 --------------
+
 log_step 10 10 "Wait for application to become ready"
+restart_argocd
 waiting_app
 
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)

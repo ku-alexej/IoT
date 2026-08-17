@@ -39,6 +39,7 @@ log_success() {
 
 log_warning() {
     status "$1" "$2" "$YELLOW"
+    sleep 1
 }
 
 log_error_exit() {

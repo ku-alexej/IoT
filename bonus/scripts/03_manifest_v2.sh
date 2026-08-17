@@ -45,8 +45,6 @@ check_token() {
     --data "password=${PASSWORD}" \
     "${GITLAB_URL}/oauth/token" | jq -r '.access_token')
 
-    printf "token: %s\n" "${TOKEN}"
-
     if [[ -z "${TOKEN}" || "${TOKEN}" == "null" ]]; then
         log_error_exit "token" "failed to obtain gitlab access token"
     fi
