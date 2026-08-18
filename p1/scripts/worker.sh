@@ -11,7 +11,6 @@ until [ -f "${TOKEN_FILE}" ]; do
     sleep 3
 done
 
-# TOKEN=$(cat "${TOKEN_FILE}")
 echo ">>> Token found. Installing K3s agent..."
 curl -sfL https://get.k3s.io | sh -s - agent \
     --server "https://${SERVER_IP}:6443" \

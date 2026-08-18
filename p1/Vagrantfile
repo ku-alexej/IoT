@@ -1,6 +1,6 @@
 # Variables
 OS      = "debian/trixie64"
-NAME    = {server: "akurochkS", worker: "akurochkSW"}
+NAME    = {server: "oprosvirS", worker: "oprosvirSW"}
 NETWORK = {server: "192.168.56.110", worker: "192.168.56.111"}
 SCRIPT  = {server: "./scripts/server.sh", worker: "./scripts/worker.sh"}
 
