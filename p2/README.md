@@ -5,7 +5,7 @@ Ingress is a Kubernetes API object that manages external HTTP/HTTPS access to se
 ### Key points:
 
 - Provides load balancing, SSL/TLS termination, and **name-based virtual hosting from a single entry point**.
-- Requires an Ingress controller (e.g., **NGINX**, Traefik, HAProxy) to actually fulfill the rules - creating an Ingress resource alone has no effect.
+- Requires an Ingress controller (e.g., NGINX, Traefik, HAProxy) to actually fulfill the rules - creating an Ingress resource alone has no effect.
 - Supports routing based on **host and path**, with three path types: Exact, Prefix, and ImplementationSpecific.
 - Limited to HTTP/HTTPS traffic only; other protocols require NodePort or LoadBalancer Service types.
 
