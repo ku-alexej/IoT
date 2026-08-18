@@ -158,7 +158,7 @@ waiting_app() {
     done
 
     if ! curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
-        log_error_exit "app" "timed out"
+        log_error_exit "app" "timed out, check app's version"
     fi
 }
 

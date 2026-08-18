@@ -143,17 +143,17 @@ configure_argocd() {
 
 waiting_app() {
 
-    for _ in $(seq 1 30); do
+    for _ in $(seq 1 240); do
         if curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
             log_success "app" "application is ready"
             break
         fi
         log_warning "app" "waiting for application"
-        sleep 2
+        sleep 10
     done
 
     if ! curl -fsS -H "Host: ${WIL_HOST}" http://localhost/ 2>/dev/null | grep -q '"v1"'; then
-        log_error_exit "app" "timed out"
+        log_error_exit "app" "timed out, check app's version"
     fi
 }
 
@@ -185,14 +185,17 @@ for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"
 done
 
-log_step 6 8 "Installing Argo CD"
+log_step 6 9 "Manifest v1"
+bash ./01_manifest_v1.sh
+
+log_step 7 9 "Installing Argo CD"
 install_argocd
 ARGOCD_PASS=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
-log_step 7 8 "Configuring Argo CD"
+log_step 8 9 "Configuring Argo CD"
 configure_argocd
 
-log_step 8 8 "Wait for application to become ready"
+log_step 9 9 "Wait for application to become ready"
 waiting_app
 
 title "Setup completed successfully"
