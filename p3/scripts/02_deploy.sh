@@ -111,7 +111,7 @@ install_argocd() {
     kubectl apply \
         --server-side \
         --force-conflicts \
-		-f ${DIR_SCRIPT}/../confs/official_argocd.yaml \
+		-f ${DIR_SCRIPT}/../confs/official_argo_install.yaml \
         -n argocd \
         >/dev/null
         # -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml \

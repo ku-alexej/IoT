@@ -112,7 +112,7 @@ install_argocd() {
     kubectl apply \
         --server-side \
         --force-conflicts \
-		-f ${DIR_SCRIPT}/../confs/official_argocd.yaml \
+		-f ${DIR_SCRIPT}/../confs/official_argo_install.yaml \
         -n argocd \
         >/dev/null
         # -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml \
@@ -168,8 +168,8 @@ waiting_app() {
 
 # cleaning for debug
 bash ./98_*
-bash ./99_*
-bash ./00_*
+# bash ./99_*
+# bash ./00_*
 clear
 
 title "Starting installation"
