@@ -5,10 +5,6 @@ set -e
 # CONFIGURATION
 # ==============================
 
-
-readonly HOST_ENTRY="127.0.0.1 gitlab.bonus.akurochk.com"
-readonly HOSTS_FILE="/etc/hosts"
-
 readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==============================
@@ -21,15 +17,6 @@ source "${DIR_SCRIPT}/lib/common.sh"
 # SETUPS
 # ==============================
 
-adding_host() {
-
-    log_warning "gitlab" "adding local host addres"
-    if ! grep -q "$HOST_ENTRY" "$HOSTS_FILE"; then
-        echo "$HOST_ENTRY" | sudo tee -a "$HOSTS_FILE" >/dev/null
-    fi
-    log_success "gitlab" "host prepared"
-}
-
 deploying_gitlab() {
 
     log_warning "gitlab" "deploying to k3d"
@@ -40,10 +27,11 @@ deploying_gitlab() {
     helm install gitlab gitlab/gitlab \
         --version 9.11.8 \
         --values https://gitlab.com/gitlab-org/charts/gitlab/raw/master/examples/values-minikube-minimum.yaml \
-        --set global.hosts.domain=bonus.akurochk.com\
+        --set global.hosts.domain=akurochk.com \
         --set global.hosts.externalIP=0.0.0.0 \
         --set global.hosts.https=false \
-        --set certmanager-issuer.email="admin@gitlab.bonus.com" \
+        --set global.ingress.enabled=false \
+        --set certmanager-issuer.email="admin@gitlab.akurochk.com" \
         --timeout 900s \
         -n gitlab \
         >/dev/null
@@ -73,29 +61,9 @@ waiting_gitlab() {
     log_success "gitlab" "$(printf 'ready (took %02dm %02ds)' "$m" "$s")"
 }
 
-# print_password() {
-
-#     log_warning "gitlab" "requesting password"
-#     sleep 10
-#     GITLAB_PASSWORD=$(kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" | base64 --decode)
-
-#     log_success "login" "root"
-#     log_success "password" "$GITLAB_PASSWORD"
-# }
-
-port_forward() {
-
-    kubectl port-forward -n gitlab svc/gitlab-webservice-default 8080:8181 >/dev/null 2>&1 &
-    # log_success "gitlab: http://gitlab.bonus.akurochk.com:8080"
-    # log_success "gitlab: http://localhost:8080"
-}
-
 # ==============================
 # MAIN
 # ==============================
 
-adding_host
 deploying_gitlab
 waiting_gitlab
-# print_password
-port_forward

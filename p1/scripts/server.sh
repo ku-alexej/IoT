@@ -3,7 +3,7 @@
 SERVER_IP="192.168.56.110"
 TOKEN_FILE="/var/lib/rancher/k3s/server/node-token"
 
-apt-get update -qq && apt-get install -y -qq curl bash
+apt-get update -qq && apt-get install -y -qq curl bash net-tools
 
 echo ">>> Installing K3s in server mode..."
 curl -sfL https://get.k3s.io | sh -s - server \

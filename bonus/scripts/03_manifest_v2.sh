@@ -8,8 +8,8 @@ set -euo pipefail
 
 readonly DIR_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-readonly GITLAB_URL="http://gitlab.bonus.akurochk.com:8080"
-readonly GITLAB_HOST="gitlab.bonus.akurochk.com:8080"
+readonly GITLAB_URL="http://gitlab.akurochk.com"
+readonly GITLAB_HOST="gitlab.akurochk.com"
 readonly GIT_USER="akurochk"
 readonly GIT_EMAIL="akurochk@student.42.fr"
 readonly USERNAME="root"
@@ -44,8 +44,6 @@ check_token() {
     --data "username=root" \
     --data "password=${PASSWORD}" \
     "${GITLAB_URL}/oauth/token" | jq -r '.access_token')
-
-    printf "token: %s\n" "${TOKEN}"
 
     if [[ -z "${TOKEN}" || "${TOKEN}" == "null" ]]; then
         log_error_exit "token" "failed to obtain gitlab access token"
