@@ -26,7 +26,7 @@ check_tools() {
     local ret=0
 
     for tool in "${TOOLS[@]}"; do
-        if command -v "$tool" >/dev/null 2>&1; then
+        if command -v "$tool" &>/dev/null; then
             log_success "$tool" "installed"
         else
             log_warning "$tool" "not installed"
@@ -39,20 +39,20 @@ check_tools() {
 
 check_docker() {
 
-    if docker info >/dev/null 2>&1; then
+    if docker info &>/dev/null; then
         log_success "docker" "ready"
         return 0
     fi
 
     log_warning "docker" "not running"
-    if command -v systemctl >/dev/null 2>&1; then
+    if command -v systemctl &>/dev/null; then
         log_warning "docker" "starting service"
-        sudo systemctl enable --now docker >/dev/null 2>&1
+        sudo systemctl enable --now docker &>/dev/null
     fi
 
     for _ in $(seq 1 20); do
         log_warning "docker" "waiting for startup"
-        if docker info >/dev/null 2>&1; then
+        if docker info &>/dev/null; then
             log_success "docker" "ready"
             return 0
         fi
@@ -64,7 +64,7 @@ check_docker() {
 
 check_namespace() {
 
-    if kubectl get ns "$1" >/dev/null 2>&1; then
+    if kubectl get ns "$1" &>/dev/null; then
         log_success "$1" "created"
     else
         log_error_exit "$1" "missing"
@@ -79,7 +79,7 @@ create_cluster() {
     local cluster="$1"
     shift
 
-    if k3d cluster get "$cluster" >/dev/null 2>&1; then
+    if k3d cluster get "$cluster" &>/dev/null; then
         log_error_exit "$cluster" "already exists"
     fi
 
@@ -131,7 +131,7 @@ configure_argocd() {
     kubectl apply -f "${DIR_SCRIPT}/../confs/02_argocd.yaml" >/dev/null
 
     log_warning "argocd" "applying ingress"
-    kubectl apply -f "${DIR_SCRIPT}/../confs/03_ingress.yaml" >/dev/null
+    kubectl apply -f "${DIR_SCRIPT}/../confs/03_ingress.yaml" &>/dev/null
 
     log_warning "argocd" "switching to insecure (HTTP) mode for ingress"
     kubectl rollout restart deployment/argocd-server -n argocd >/dev/null
@@ -162,23 +162,23 @@ waiting_app() {
 
 title "Starting installation"
 
-log_step 1 8 "Checking tools"
+log_step 1 9 "Checking tools"
 if ! check_tools; then
     log_error_exit "tools" "missing one or more tools"
 fi
 
-log_step 2 8 "Checking Docker"
+log_step 2 9 "Checking Docker"
 if ! check_docker; then
     log_error_exit "docker" "unavailable"
 fi
 
-log_step 3 8 "Creating k3d cluster"
+log_step 3 9 "Creating k3d cluster"
 create_cluster ${CLUSTER_NAME}
 
-log_step 4 8 "Configuring /etc/hosts"
+log_step 4 9 "Configuring /etc/hosts"
 configure_hosts
 
-log_step 5 8 "Creating namespaces"
+log_step 5 9 "Creating namespaces"
 kubectl apply -f ${DIR_SCRIPT}/../confs/00_namespaces.yaml >/dev/null
 for ns in "${NAMESPACES[@]}"; do
     check_namespace "$ns"

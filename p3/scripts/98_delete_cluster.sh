@@ -17,11 +17,11 @@ printf "\n"
 
 log_warning "p3-cluster" "deleting"
 
-if ! which k3d >/dev/null 2>&1; then
+if ! which k3d &>/dev/null; then
     log_error_exit "p3-cluster" "failed to delete, k3d not installed"
 fi
 
-k3d cluster list | grep -qw "p3-cluster" && k3d cluster delete p3-cluster >/dev/null 2>&1
+k3d cluster list | grep -qw "p3-cluster" && k3d cluster delete p3-cluster &>/dev/null
 
 log_success "p3-cluster" "deleted"
 title "Done"

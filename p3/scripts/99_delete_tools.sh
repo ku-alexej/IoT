@@ -15,17 +15,17 @@ source "${DIR_SCRIPT}/lib/common.sh"
 uninstall_docker() {
 
     # Remove docker elments
-    if command -v docker >/dev/null 2>&1; then
+    if command -v docker &>/dev/null; then
         {
             docker rm -f $(docker ps -aq) || true
             docker volume rm $(docker volume ls -q) || true
             docker network prune -f || true
             docker image prune -af || true
-        } >/dev/null 2>&1
+        } &>/dev/null
     fi
 
     # Stop Docker services
-    if command -v systemctl >/dev/null 2>&1; then
+    if command -v systemctl &>/dev/null; then
         sudo systemctl stop docker docker.socket containerd 2>/dev/null || true
         sudo systemctl disable docker docker.socket containerd 2>/dev/null || true
     fi
@@ -43,9 +43,9 @@ uninstall_docker() {
         docker-ce-rootless-extras \
         docker.io \
         containerd \
-        runc >/dev/null 2>&1 || true
+        runc &>/dev/null|| true
 
-    sudo apt-get autoremove -y >/dev/null 2>&1 || true
+    sudo apt-get autoremove -y &>/dev/null|| true
 
     # Remove Docker data
     sudo rm -rf /var/lib/docker 2>/dev/null || true
