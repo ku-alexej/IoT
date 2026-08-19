@@ -54,17 +54,19 @@ kubectl get pods -A | grep -i ingress
 ```
 
 ```bash
+# show connection from inside server
+vagrant ssh usernameS
 kubectl get all
-
 curl -H "Host:app2.com" 192.168.56.110
 ```
 
-### For the host machine to test p2 in browser:
+### Test p2 in browser:
 ```bash
 sudo nano /etc/hosts
-# add:
-#     192.168.56.110  app1.com
-#     192.168.56.110  app2.com
+
+# add lines:
+# 192.168.56.110  app1.com
+# 192.168.56.110  app2.com
 
 ```
 Open in your browser:
@@ -72,6 +74,9 @@ Open in your browser:
 - http://app2.com → "Hello from app2"
 - http://192.168.56.110 → "Hello from app3" (default backend)
 
-```bash
-vagrant reload akurochkS --provision
-```
+
+### Test p2 in terminal:
+Use curl with/without header:
+- `curl -H "Host:app1.com" 192.168.56.110`
+- `curl -H "Host:app2.com" 192.168.56.110`
+- `curl 192.168.56.110`

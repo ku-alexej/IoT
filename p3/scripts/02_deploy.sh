@@ -114,7 +114,6 @@ install_argocd() {
 		-f ${DIR_SCRIPT}/../confs/official_argo_install.yaml \
         -n argocd \
         >/dev/null
-        # -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml \
 
     log_warning "argocd" "waiting for deployment"
     kubectl wait \

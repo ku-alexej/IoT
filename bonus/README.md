@@ -70,12 +70,9 @@ bash 01_manifest_v2.sh
 - redirection order where it is really needed:  
 `2>&1 >/dev/null`  ->  `>/dev/null 2>&1`
 
-- typos in logs
 
-- logs description
-
-- add sleep time to avoid errors
-
-- add comments if logs are not enough 
-
-- add difference between `p3` and `bonus`
+```
+-f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash &>/dev/null
+curl -s https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash &>/dev/null
+```

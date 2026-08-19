@@ -32,7 +32,6 @@ install_kubectl() {
 
 install_k3d() {
     log_warning "k3d" "installing"
-    # curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash &>/dev/null
 	bash "${DIR_SCRIPT}/../scripts/official_k3d.sh" &>/dev/null
 }
 
@@ -43,7 +42,6 @@ install_git() {
 
 install_helm() {
     log_warning "helm" "installing"
-    # curl -s https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash &>/dev/null
 	bash "${DIR_SCRIPT}/../scripts/official_helm.sh" &>/dev/null
 }
 
