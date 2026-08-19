@@ -66,8 +66,7 @@ $ vagrant ssh usernameS
 vagrant@usernameS:~$ alias k=kubectl
 vagrant@usernameS:~$ k get nodes -o wide
 
-
-# show conection with worker
+# show connection with worker
 $ vagrant ssh usernameSW
 vagrant@usernameSW:~$ export PATH=$PATH:/sbin/
 vagrant@usernameSW:~$ ifconfig eth1

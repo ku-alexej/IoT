@@ -49,7 +49,7 @@ check_token() {
         log_error_exit "token" "failed to obtain gitlab access token"
     fi
 
-    log_success "token" "exist"
+    log_success "token" "found"
 }
 
 clone_repository() {

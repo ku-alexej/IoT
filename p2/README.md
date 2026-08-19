@@ -35,7 +35,7 @@ spec:
 Full docs:
 https://kubernetes.io/docs/concepts/services-networking/ingress/
 
-### Usefull commands:
+### Useful commands:
 ```bash
 # show all Ingresses in the current namespace
 kubectl get ingress
