@@ -28,7 +28,7 @@ prepare_manifest() {
 
     log_warning "manifest" "cloning repository"
     rm -rf ${DIR_REPO}
-    git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$DIR_REPO" >/dev/null 2>&1
+    git clone "git@github.com:${GIT_USER}/${GIT_DIR}.git" "$DIR_REPO" &>/dev/null
 
     log_warning "manifest" "configuring local repository"
     cd "$DIR_REPO"
@@ -39,9 +39,9 @@ prepare_manifest() {
     git add deployment.yaml
     if ! git diff --cached --quiet; then
         log_warning "manifest" "committing changes"
-        git commit -m "chore: update deployment manifest (v1)" >/dev/null 2>&1
+        git commit -m "chore: update deployment manifest (v1)" &>/dev/null
         log_warning "manifest" "pushing changes"
-        git push -u origin main >/dev/null 2>&1
+        git push -u origin main &>/dev/null
     fi
 
     log_success "manifest" "v1 ready"
@@ -51,8 +51,4 @@ prepare_manifest() {
 # MAIN
 # ==============================
 
-title "Preparing deployment manifest (v1)"
-
-echo ""
 prepare_manifest
-echo ""
