@@ -60,49 +60,15 @@ kubectl get pods -A
 | `journalctl -u k3s-agent -f` | View K3s agent logs      |
 
 
-Delete vm if exist
-
 ```bash
-VBoxManage list vms
-...
-VBoxManage unregistervm akurochkS --delete
-```
-
-```bash
-virsh list --all
-virsh -c qemu:///system list --all
-
-# virsh destroy p1_akurochkS
-# virsh undefine p1_akurochkS --remove-all-storage
-
-# virsh destroy p1_akurochkSW
-# virsh undefine p1_akurochkSW --remove-all-storage
-
-# virsh -c qemu:///system destroy p1_akurochkS
-# virsh -c qemu:///system undefine p1_akurochkS --remove-all-storage
-
-# virsh -c qemu:///system destroy p1_akurochkSW
-# virsh -c qemu:///system undefine p1_akurochkSW --remove-all-storage
-```
+# show nodes with server
+$ vagrant ssh usernameS
+vagrant@usernameS:~$ alias k=kubectl
+vagrant@usernameS:~$ k get nodes -o wide
 
 
-Free CPU
-```bash
-sudo modprobe -r kvm_intel kvm_amd kvm
-
-sudo nano /etc/modprobe.d/blacklist-kvm.conf
-# add:
-# blacklist kvm
-# blacklist kvm_intel
-# blacklist kvm_amd
-```
-
-```bash
-vagrant up 2>&1 | tee -a logs.txt
-VAGRANT_LOG=debug vagrant up 2>&1 | tee -a logs.txt
-VAGRANT_LOG=info vagrant up 2>&1 | tee -a logs.txt
-```
-
-```bash
-vagrant plugin install vagrant-vbguest
+# show conection with worker
+$ vagrant ssh usernameSW
+vagrant@usernameSW:~$ export PATH=$PATH:/sbin/
+vagrant@usernameSW:~$ ifconfig eth1
 ```

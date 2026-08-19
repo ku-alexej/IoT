@@ -21,7 +21,9 @@ data:
         </div>
       </body>
     </html>
+
 ---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -76,7 +78,9 @@ spec:
             name: app-three
         - name: html
           emptyDir: {}
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
