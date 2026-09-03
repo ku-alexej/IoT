@@ -1,4 +1,12 @@
-# Ingress
+# Part 2 — Kubernetes Ingress
+
+This part focuses on exposing applications running in a Kubernetes cluster using Ingress.
+
+The goal is to set up a Kubernetes cluster with three applications. Each application runs in its own pods, while application number two is deployed with three replicas. The cluster consists of multiple nodes, and Kubernetes Ingress is used to route external traffic to the appropriate applications.
+
+The project demonstrates how an Ingress Controller routes HTTP traffic to Kubernetes services based on host and path rules.
+
+## Ingress
 
 Ingress is a Kubernetes API object that manages external HTTP/HTTPS access to services running inside a cluster. Instead of exposing each service individually, Ingress lets you define routing rules (based on hostnames and URL paths) that map incoming traffic to the appropriate backend Service.
 
@@ -71,12 +79,12 @@ sudo nano /etc/hosts
 ```
 Open in your browser:
 - http://app1.com → "Hello from app1"
-- http://app2.com → "Hello from app2"
+- http://app2.com → "Hello from app2" - answer from one of the replicas
 - http://192.168.56.110 → "Hello from app3" (default backend)
 
 
 ### Test p2 in terminal:
 Use curl with/without header:
 - `curl -H "Host:app1.com" 192.168.56.110`
-- `curl -H "Host:app2.com" 192.168.56.110`
+- `curl -H "Host:app2.com" 192.168.56.110` - answer from one of the replicas
 - `curl 192.168.56.110`
